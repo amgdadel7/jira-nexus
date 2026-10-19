@@ -75,6 +75,40 @@ app.UseMiddleware<SessionAuthMiddleware>();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "Masar .NET API", time = DateTimeOffset.UtcNow }));
 
+// Server-Sent Events (SSE) for presence and real-time updates
+app.MapGet("/api/events", async (HttpContext context, CancellationToken ct) =>
+{
+    context.Response.Headers.Append("Content-Type", "text/event-stream; charset=utf-8");
+    context.Response.Headers.Append("Cache-Control", "no-cache, no-transform");
+    context.Response.Headers.Append("Connection", "keep-alive");
+    context.Response.Headers.Append("X-Accel-Buffering", "no");
+
+    await context.Response.WriteAsync("retry: 3000\n\n", ct);
+
+    var currentUserId = (context.Items["CurrentUser"] as Masar.Domain.Entities.User)?.Id ?? "u1";
+    var payload = JsonSerializer.Serialize(new { users = new[] { currentUserId } });
+
+    await context.Response.WriteAsync($"event: hello\ndata: {payload}\n\n", ct);
+    await context.Response.Body.FlushAsync(ct);
+
+    await context.Response.WriteAsync($"event: presence\ndata: {payload}\n\n", ct);
+    await context.Response.Body.FlushAsync(ct);
+
+    try
+    {
+        while (!ct.IsCancellationRequested)
+        {
+            await Task.Delay(25000, ct);
+            await context.Response.WriteAsync(": ping\n\n", ct);
+            await context.Response.Body.FlushAsync(ct);
+        }
+    }
+    catch (OperationCanceledException)
+    {
+        // Normal client disconnect
+    }
+});
+
 app.MapControllers();
 app.MapGet("/debug-sentry", () => { throw new InvalidOperationException("Masar Sentry Test Exception"); });
 
