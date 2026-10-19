@@ -1,0 +1,6 @@
+@Masar.Api_HostAddress = http://localhost:5076
+
+GET {{Masar.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,17 @@
+{
+  "name": "masar",
+  "private": true,
+  "scripts": {
+    "install:all": "npm --prefix server install && npm --prefix client install",
+    "build": "npm --prefix client run build",
+    "start": "node server/index.js",
+    "dev:server": "node --watch server/index.js",
+    "dev:client": "npm --prefix client run dev",
+    "db:migrate": "node server/src/cli/db.js migrate",
+    "db:status": "node server/src/cli/db.js status",
+    "db:seed": "node server/src/cli/db.js seed --force",
+    "db:reset": "node server/src/cli/db.js reset",
+    "seed": "node server/src/cli/db.js seed --force",
+    "test": "npm --prefix server test"
+  }
+}

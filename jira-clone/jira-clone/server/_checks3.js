@@ -1,0 +1,17 @@
+const show = (label, r) => console.log(r.status, label, JSON.stringify(r.data).slice(0, 150));
+show('me', await call('GET', '/auth/me'));
+show('projects', { status: 200, data: (await call('GET', '/projects')).data.map((p) => `${p.key}:${p.myRole}`) });
+show('search FIN (private, no access)', await call('GET', '/search?jql=project%20%3D%20FIN'));
+show('FIN-1', await call('GET', '/issues/FIN-1'));
+show('edit KAN-1', await call('PATCH', '/issues/KAN-1', { summary: 'hack' }));
+show('comment KAN-1', await call('POST', '/issues/KAN-1/comments', { body: 'viewer comment' }));
+show('delete KAN-1', await call('DELETE', '/issues/KAN-1'));
+show('custom field create', await call('POST', '/custom-fields', { name: 'x', type: 'text' }));
+show('scheme update', await call('PUT', '/projects/KAN/permissions', { scheme: {} }));
+show('global perms put', await call('PUT', '/permissions/global', { scheme: {} }));
+show('audit', await call('GET', '/audit'));
+show('priority >= High', await call('GET', '/search?jql=' + encodeURIComponent('project = KAN AND priority >= High')));
+const r = await fetch(base + '/projects');
+console.log('anon', r.status, await r.text());
+const e = await fetch(base + '/plans'); console.log('plans anon', e.status);
+const nf = await call('GET', '/nope'); show('404', nf);
