@@ -25,10 +25,14 @@ export const withToken = (url, token) =>
 const PUBLIC_AUTH = ['/api/auth/login', '/api/auth/reset', '/api/auth/forgot', '/api/auth/signup', '/api/auth/config', '/api/plans']
 export let lastAuthProblem = null
 
+const API_BASE = (import.meta.env?.VITE_API_URL || '').replace(/\/+$/, '')
+export const resolveUrl = (url) => (API_BASE && url.startsWith('/api') ? `${API_BASE}${url}` : url)
+
 export async function send(method, url, body, { raw, headers } = {}, token, viaQuery) {
   let res
+  const fullUrl = resolveUrl(url)
   try {
-    res = await fetch(token && viaQuery ? withToken(url, token) : url, {
+    res = await fetch(token && viaQuery ? withToken(fullUrl, token) : fullUrl, {
       method,
       credentials: 'include',
       cache: 'no-store',

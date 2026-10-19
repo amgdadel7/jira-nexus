@@ -6,6 +6,12 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     allowedHosts: true,
-    proxy: { '/api': 'http://localhost:3000' },
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_URL || 'https://jira-nexus.onrender.com',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
   },
 })

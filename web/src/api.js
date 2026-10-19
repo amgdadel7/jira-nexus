@@ -1,6 +1,6 @@
 import { authEvents } from './core/events/authEvents'
 import { session, getProject, setProject, CLIENT_ID } from './core/api/sessionStore'
-import { req, q, withToken, lastAuthProblem } from './core/api/httpClient'
+import { req, q, withToken, lastAuthProblem, resolveUrl } from './core/api/httpClient'
 import { authApi } from './features/auth/data/authApi'
 import { projectsApi } from './features/projects/data/projectsApi'
 import { issuesApi } from './features/issues/data/issuesApi'
@@ -189,7 +189,7 @@ export function connectEvents({ onChange, onPresence } = {}) {
   const open = () => {
     if (stopped || typeof EventSource === 'undefined') return
     const token = session.get()
-    es = new EventSource(`/api/events${q({ access_token: token, client: CLIENT_ID })}`, { withCredentials: true })
+    es = new EventSource(resolveUrl(`/api/events${q({ access_token: token, client: CLIENT_ID })}`), { withCredentials: true })
     es.addEventListener('change', (e) => {
       try {
         const d = JSON.parse(e.data)
