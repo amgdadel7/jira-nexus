@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://api-gold-zeta-17.vercel.app/api/:path*"
+      "destination": "https://jira-nexus.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",
