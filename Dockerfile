@@ -27,11 +27,14 @@ COPY api/ ./
 # Copy compiled frontend distribution to serve from Express
 COPY --from=web-builder /web/dist /web/dist
 
+# Pre-initialize database schema and seeds during image build so runtime stays strictly below 512MiB
+RUN node -e "const { bootstrap } = require('./src/main.js'); bootstrap({ listen: false }).then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); })"
+
 # Default ports and production environment
 EXPOSE 8080
 ENV PORT=8080
 ENV HOST=0.0.0.0
 ENV NODE_ENV=production
-ENV NODE_OPTIONS="--max-old-space-size=256 --expose-gc"
+ENV NODE_OPTIONS="--max-old-space-size=192 --expose-gc"
 
-CMD ["npm", "start"]
+CMD ["node", "src/main.js"]

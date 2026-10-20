@@ -32,6 +32,14 @@ class Actor {
     return this.isSiteAdmin || ['owner', 'admin'].includes(this.orgRole);
   }
 
+  get isGuest() {
+    return this.orgRole === 'guest';
+  }
+
+  get isSudo() {
+    return Boolean(this.user?.sudo_confirmed_at && Date.now() - new Date(this.user.sudo_confirmed_at) < 15 * 60e3);
+  }
+
   get viaApiToken() {
     return Boolean(this.apiTokenId);
   }

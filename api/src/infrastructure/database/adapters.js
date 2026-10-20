@@ -68,9 +68,10 @@ async function createPgliteAdapter({ dataDir }) {
     [OID.TIMESTAMP]: (v) => new Date(`${v}Z`).toISOString(),
     [OID.DATE]: (v) => v,
   };
-  const pg = new PGlite({ ...(inMemory ? {} : { dataDir }), parsers });
+  const pg = new PGlite({ ...(inMemory ? {} : { dataDir }), parsers, relaxedDurability: true });
   await pg.waitReady;
   await pg.exec("SET TIME ZONE 'UTC'");
+  if (typeof global.gc === 'function') global.gc();
 
   const normalise = (res) => ({ rows: res.rows, rowCount: res.affectedRows ?? res.rows.length });
   const executor = (conn) => ({

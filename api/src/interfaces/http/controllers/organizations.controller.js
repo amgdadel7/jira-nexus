@@ -12,6 +12,7 @@ module.exports = function organizationsController(router, { services }) {
 
   router.get('/organizations/:orgId/members', handle((req) => organizations.listMembers(req.actor, req.params.orgId)));
   router.post('/organizations/:orgId/members', handle(async (req, res) => created(res, await organizations.addMember(req.actor, req.params.orgId, req.body || {}))));
+  router.delete('/organizations/:orgId/members/:userId', handle(async (req) => organizations.removeMember(req.actor, req.params.orgId, req.params.userId)));
 
   router.get('/organizations/:orgId/workspaces', handle((req) => organizations.listWorkspaces(req.actor, req.params.orgId)));
   router.post('/organizations/:orgId/workspaces', handle(async (req, res) => created(res, await organizations.createWorkspace(req.actor, req.params.orgId, req.body || {}))));

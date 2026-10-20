@@ -71,4 +71,18 @@ function requireAdmin({ quiet = false } = {}) {
   };
 }
 
-module.exports = { authenticate, requireAuth, requireAdmin };
+function requireSudo({ quiet = false } = {}) {
+  return (req, res, next) => {
+    if (!req.user) return unauthorized(req, res, { quiet });
+    const isRecent = req.user.sudo_confirmed_at && (Date.now() - new Date(req.user.sudo_confirmed_at) < 15 * 60e3);
+    if (!isRecent) {
+      return res.status(403).json({
+        error: 'Recent authentication is required for this action.',
+        code: 'sudo_required',
+      });
+    }
+    return next();
+  };
+}
+
+module.exports = { authenticate, requireAuth, requireAdmin, requireSudo };

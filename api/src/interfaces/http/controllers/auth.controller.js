@@ -10,10 +10,29 @@ module.exports = function authController(router, { services, guards }) {
   const { requireAuth, requireAdmin } = guards;
 
   router.post('/auth/login', handle(async (req, res) => {
-    const { user, session } = await auth.login({ ...req.body, userAgent: req.headers['user-agent'], ip: req.ip });
+    const result = await auth.login({ ...req.body, userAgent: req.headers['user-agent'], ip: req.ip });
+    if (result.mfaRequired) {
+      return { mfaRequired: true, mfaToken: result.mfaToken };
+    }
+    const { user, session } = result;
     setSessionCookie(req, res, session);
     return { user: present.publicUser(user), token: session.token, expiresAt: session.expires.toISOString(), remember: session.remember };
   }));
+
+  router.post('/auth/mfa/verify', handle(async (req, res) => {
+    const { user, session } = await auth.verifyMfaChallenge({
+      ...req.body,
+      userAgent: req.headers['user-agent'],
+      ip: req.ip,
+    });
+    setSessionCookie(req, res, session);
+    return { user: present.publicUser(user), token: session.token, expiresAt: session.expires.toISOString(), remember: session.remember };
+  }));
+
+  router.post('/auth/mfa/setup', requireAuth, handle(async (req) => auth.setupMfa(req.actor)));
+  router.post('/auth/mfa/enable', requireAuth, handle(async (req) => auth.enableMfa(req.actor, req.body || {})));
+  router.post('/auth/mfa/disable', requireAuth, handle(async (req) => auth.disableMfa(req.actor, req.body || {})));
+  router.post('/auth/sudo', requireAuth, handle(async (req) => auth.confirmSudo(req.actor, req.body || {})));
 
   router.post('/auth/logout', handle(async (req, res) => {
     await auth.logout(req.sessionToken);
@@ -37,7 +56,12 @@ module.exports = function authController(router, { services, guards }) {
 
   router.get('/auth/sessions', requireAuth, handle(async (req) => (await auth.listSessions(req.actor)).map((s) => present.session(s, req.sessionToken))));
   router.delete('/auth/sessions', requireAuth, handle(async (req) => ({ ok: true, removed: await auth.revokeOtherSessions(req.actor) })));
+  router.post('/auth/sessions/revoke-others', requireAuth, handle(async (req) => ({ ok: true, removed: await auth.revokeOtherSessions(req.actor) })));
   router.delete('/auth/sessions/:id', requireAuth, handle(async (req) => {
+    await auth.revokeSession(req.actor, req.params.id);
+    return { ok: true };
+  }));
+  router.post('/auth/sessions/:id/revoke', requireAuth, handle(async (req) => {
     await auth.revokeSession(req.actor, req.params.id);
     return { ok: true };
   }));

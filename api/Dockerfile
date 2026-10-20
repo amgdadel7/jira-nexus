@@ -12,6 +12,6 @@ COPY . .
 EXPOSE 8080
 ENV PORT=8080
 ENV NODE_ENV=production
-ENV NODE_OPTIONS="--max-old-space-size=256 --expose-gc"
+ENV NODE_OPTIONS="--max-old-space-size=192 --expose-gc"
 
-CMD ["npm", "start"]
+CMD ["node", "src/main.js"]

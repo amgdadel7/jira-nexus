@@ -36,6 +36,29 @@ class AccessControl {
     }
   }
 
+  /* ---------- organization & workspace permissions (deny-by-default) ---------- */
+  canOrg(actor, permission) {
+    if (!actor?.user) return false;
+    if (actor.user.role === 'admin') return true;
+    const role = actor.orgRole || 'guest';
+    const allowed = P.ORG_PERMISSIONS[permission] || [];
+    return allowed.includes(role);
+  }
+
+  assertOrg(actor, permission) {
+    if (!this.canOrg(actor, permission)) {
+      throw forbidden(`You don’t have permission to perform this organization action.`);
+    }
+  }
+
+  canWorkspace(actor, workspaceRole, permission) {
+    if (!actor?.user) return false;
+    if (actor.user.role === 'admin' || actor.orgRole === 'owner') return true;
+    const role = workspaceRole || 'guest';
+    const allowed = P.WORKSPACE_PERMISSIONS[permission] || [];
+    return allowed.includes(role);
+  }
+
   /* ---------- project ---------- */
   /** Effective scheme; `stored` ignores the plan (used by the settings page to show saved values). */
   async schemeFor(project, { stored = false } = {}) {
@@ -47,10 +70,10 @@ class AccessControl {
     return P.buildScheme(overrides);
   }
 
-  async roleFor(user, project) {
+  async roleFor(user, project, orgRole = null) {
     if (!user || !project) return null;
     const memberRole = user.role === 'admin' || project.lead_id === user.id ? null : await this.projects.memberRole(project.key, user.id);
-    return P.effectiveRole({ user, project, memberRole, permissionsFeature: await this.permissionsFeature() });
+    return P.effectiveRole({ user, project, memberRole, permissionsFeature: await this.permissionsFeature(), orgRole });
   }
 
   async projectAccess(actor, projectKey) {
@@ -65,7 +88,7 @@ class AccessControl {
         actor.cache.set(cacheKey, result);
         return result;
       }
-      const role = await this.roleFor(actor.user, project);
+      const role = await this.roleFor(actor.user, project, actor.orgRole);
       result = { project, role, set: P.permissionSet({ user: actor.user, role, scheme: await this.schemeFor(project) }) };
     }
     actor.cache.set(cacheKey, result);

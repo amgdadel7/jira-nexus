@@ -10,9 +10,28 @@
  *  • On plans without the 'permissions' feature everyone works as a Member and the default scheme applies.
  */
 
-const ROLES = ['admin', 'member', 'viewer'];
-const ROLE_LABEL = { admin: 'Administrator', member: 'Member', viewer: 'Viewer' };
+const ROLES = ['admin', 'member', 'viewer', 'guest'];
+const ROLE_LABEL = { admin: 'Administrator', member: 'Member', viewer: 'Viewer', guest: 'Guest' };
 const ACCESS = ['open', 'limited', 'private'];
+
+const ORG_ROLES = ['owner', 'admin', 'member', 'guest'];
+const ORG_PERMISSIONS = {
+  ORG_MANAGE: ['owner', 'admin'],
+  ORG_BILLING: ['owner'],
+  ORG_MEMBERS_INVITE: ['owner', 'admin'],
+  ORG_MEMBERS_MANAGE: ['owner', 'admin'],
+  ORG_DELETE: ['owner'],
+  ORG_CREATE_WORKSPACE: ['owner', 'admin', 'member'],
+  ORG_CREATE_PROJECT: ['owner', 'admin', 'member'],
+};
+
+const WORKSPACE_ROLES = ['admin', 'member', 'viewer', 'guest'];
+const WORKSPACE_PERMISSIONS = {
+  WORKSPACE_ADMIN: ['admin'],
+  WORKSPACE_CREATE_PROJECT: ['admin', 'member'],
+  WORKSPACE_MANAGE_MEMBERS: ['admin'],
+  WORKSPACE_VIEW: ['admin', 'member', 'viewer', 'guest'],
+};
 
 const PERMISSIONS = [
   { key: 'BROWSE_PROJECT', group: 'Project', name: 'Browse project', description: 'See the project, its work items, boards, releases and reports.' },
@@ -92,12 +111,14 @@ function buildScheme(overrides) {
   return out;
 }
 
-/** Effective project role: 'admin' | 'member' | 'viewer' | null (no access). */
-function effectiveRole({ user, project, memberRole, permissionsFeature }) {
+/** Effective project role: 'admin' | 'member' | 'viewer' | 'guest' | null (no access - deny-by-default). */
+function effectiveRole({ user, project, memberRole, permissionsFeature, orgRole }) {
   if (!user || !project) return null;
   if (user.role === 'admin' || project.lead_id === user.id) return 'admin';
   if (!permissionsFeature) return memberRole === 'admin' ? 'admin' : 'member';
   if (memberRole) return memberRole;
+  // Deny-by-default: guests at the organization level never inherit open/limited project access without explicit assignment
+  if (orgRole === 'guest') return null;
   if (project.access === 'open') return 'member';
   if (project.access === 'limited') return 'viewer';
   return null;
@@ -107,7 +128,7 @@ function effectiveRole({ user, project, memberRole, permissionsFeature }) {
 function permissionSet({ user, role, scheme }) {
   if (user?.role === 'admin') return new Set(PERM_KEYS);
   if (!role) return new Set();
-  const set = new Set(PERM_KEYS.filter((p) => scheme[p].includes(role)));
+  const set = new Set(PERM_KEYS.filter((p) => (scheme[p] || []).includes(role)));
   return set.has('BROWSE_PROJECT') ? set : new Set();
 }
 
@@ -121,5 +142,6 @@ function buildGlobalScheme(saved) {
 
 module.exports = {
   ROLES, ROLE_LABEL, ACCESS, PERMISSIONS, PERM_KEYS, DEFAULT_SCHEME, LOCKED, GLOBAL_PERMISSIONS, GLOBAL_DEFAULT, MESSAGES,
+  ORG_ROLES, ORG_PERMISSIONS, WORKSPACE_ROLES, WORKSPACE_PERMISSIONS,
   defaultScheme, buildScheme, effectiveRole, permissionSet, buildGlobalScheme,
 };

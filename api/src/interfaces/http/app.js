@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
-const { authenticate, requireAuth, requireAdmin } = require('./middleware/auth');
+const { authenticate, requireAuth, requireAdmin, requireSudo } = require('./middleware/auth');
 const { broadcaster } = require('./middleware/broadcaster');
 const { errorHandler } = require('./middleware/errorHandler');
 const { requestLogger } = require('./middleware/requestLogger');
@@ -33,7 +33,12 @@ function noStore(req, res, next) {
  */
 function createApp(container, { serveClient = true } = {}) {
   const { config, services, live, access } = container;
-  const guards = { requireAuth: requireAuth(), requireAdmin: requireAdmin(), requireAuthQuiet: requireAuth({ quiet: true }) };
+  const guards = {
+    requireAuth: requireAuth(),
+    requireAdmin: requireAdmin(),
+    requireAuthQuiet: requireAuth({ quiet: true }),
+    requireSudo: requireSudo(),
+  };
   const ctx = { ...container, services, guards };
 
   const app = express();

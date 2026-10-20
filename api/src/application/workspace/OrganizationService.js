@@ -135,6 +135,26 @@ class OrganizationService {
     return added;
   }
 
+  async removeMember(actor, orgId, userId) {
+    const targetOrgId = orgId || actor.organizationId;
+    const currentMember = await this.orgs.getMember(targetOrgId, actor.id);
+    if ((!currentMember || !['owner', 'admin'].includes(currentMember.role)) && !actor.isSiteAdmin) {
+      throw forbidden('Only organization administrators can remove members.');
+    }
+
+    const target = await this.orgs.getMember(targetOrgId, userId);
+    if (!target) throw notFound('Member not found in organization.');
+
+    if (target.role === 'owner') {
+      const allMembers = await this.orgs.listMembers(targetOrgId);
+      const owners = allMembers.filter((m) => m.role === 'owner');
+      if (owners.length <= 1) throw bad('Cannot remove the only owner of the organization.');
+    }
+
+    await this.orgs.removeMember(targetOrgId, userId);
+    return { ok: true };
+  }
+
   async listWorkspaces(actor, orgId) {
     const targetOrgId = orgId || actor.organizationId;
     const member = await this.orgs.getMember(targetOrgId, actor.id);
