@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Masar.Api.Middlewares;
+using Masar.Api.Services;
 using Masar.Application;
 using Masar.Infrastructure;
 using Masar.Persistence;
@@ -8,6 +9,10 @@ using Masar.Persistence;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.UseSentry();
+
+// Mirat Error Monitoring & HTTP services
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<IMiratClient, MiratClient>();
 
 // Add Clean Architecture layers
 

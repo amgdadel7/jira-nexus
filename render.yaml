@@ -49,3 +49,5 @@ services:
         value: Production
       - key: ConnectionStrings__DefaultConnection
         value: "Host=aws-0-ap-southeast-2.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.fxyotyjqzddlcmqxemkz;Password=E8homLoNlT3Qthn6;SSL Mode=Require;Trust Server Certificate=true"
+      - key: MIRAT_DSN
+        value: https://mirat-monitor.onrender.com/api/events/0XJUEMTBGD47buhgkf7WUBnvGWvXGFDt

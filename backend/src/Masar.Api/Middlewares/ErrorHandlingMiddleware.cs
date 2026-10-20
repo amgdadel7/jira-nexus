@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Masar.Api.Services;
 using Masar.Domain.Exceptions;
 
 namespace Masar.Api.Middlewares;
@@ -8,11 +9,13 @@ public class ErrorHandlingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ErrorHandlingMiddleware> _logger;
+    private readonly IMiratClient _miratClient;
 
-    public ErrorHandlingMiddleware(RequestDelegate next, ILogger<ErrorHandlingMiddleware> logger)
+    public ErrorHandlingMiddleware(RequestDelegate next, ILogger<ErrorHandlingMiddleware> logger, IMiratClient miratClient)
     {
         _next = next;
         _logger = logger;
+        _miratClient = miratClient;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -51,6 +54,7 @@ public class ErrorHandlingMiddleware
                 break;
             default:
                 _logger.LogError(exception, "Unhandled exception occurred: {Message}", exception.Message);
+                _miratClient.CaptureException(exception, context);
                 message = exception.Message;
                 break;
         }
