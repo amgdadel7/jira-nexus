@@ -26,6 +26,7 @@ module.exports = function issuesController(router, { services }) {
 
   router.post('/issues/:key/clone', handle(async (req, res) => created(res, present.issue(await issues.clone(req.actor, req.params.key)))));
   router.post('/issues/:key/rank', handle(async (req) => present.issue(await issues.rank(req.actor, req.params.key, req.body || {}))));
+  router.put('/issues/:key/rank', handle(async (req) => present.issue(await issues.rank(req.actor, req.params.key, req.body || {}))));
 
   router.post('/issues/:key/comments', handle(async (req, res) => created(res, present.comment(await comments.add(req.actor, req.params.key, req.body?.body)))));
   router.patch('/comments/:id', handle(async (req) => present.comment(await comments.update(req.actor, req.params.id, req.body?.body))));

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { AppCtx } from './ctx.js'
-import { api, authEvents, setProject, connectEvents } from './api.js'
+import { api, authEvents, setProject, connectEvents, session } from './api.js'
 import { Icon, JiraLogo } from './icons.jsx'
 import { ToastProvider, useToast } from './components/ui.jsx'
 import { TopNav, Sidebar, SidebarFrame, ProjectHeader, TABS, tabsFor } from './components/Shell.jsx'
@@ -286,19 +286,35 @@ function resetTokenFromUrl() {
 }
 
 function Root() {
-  const [auth, setAuth] = useState({ state: 'loading', user: null })
+  const [auth, setAuth] = useState(() => {
+    // If there is no stored session token, the user is unauthenticated.
+    // Avoid calling /api/auth/me which triggers cold-starts and 401 console errors.
+    return session.get() ? { state: 'loading', user: null } : { state: 'out', user: null }
+  })
   const [notice, setNotice] = useState(null) // { text, error }
   const [resetToken, setResetToken] = useState(resetTokenFromUrl)
 
   const check = useCallback(() => {
+    if (!session.get()) {
+      setAuth({ state: 'out', user: null })
+      return
+    }
     setAuth({ state: 'loading', user: null })
     api.me()
       .then((d) => { setAuth({ state: 'in', user: d.user }); setNotice(null) })
-      .catch((e) => { setAuth({ state: 'out', user: null }); if (e.network) setNotice({ text: e.message, error: true }) })
+      .catch((e) => {
+        session.clear()
+        setAuth({ state: 'out', user: null })
+        if (e.network) setNotice({ text: e.message, error: true })
+      })
   }, [])
 
   useEffect(() => {
-    if (resetToken === null) check(); else setAuth({ state: 'out', user: null })
+    if (resetToken !== null) {
+      setAuth({ state: 'out', user: null })
+    } else if (session.get()) {
+      check()
+    }
     const onLogout = (e) => {
       setAuth({ state: 'out', user: null })
       if (e.detail?.expired) {

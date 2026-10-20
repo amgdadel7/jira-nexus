@@ -153,7 +153,7 @@ r.post('/issues/bulk', L.wrap((req, res) => {
 }));
 
 // ---------- rank (cf[10019]) ----------
-r.post('/issues/:key/rank', L.wrap((req, res) => {
+const handleRank = L.wrap((req, res) => {
   const row = issueFor(req, req.params.key, 'EDIT_ISSUES');
   const { beforeKey, afterKey } = req.body || {};
   if (!beforeKey && !afterKey) throw L.bad('beforeKey or afterKey is required.');
@@ -164,7 +164,9 @@ r.post('/issues/:key/rank', L.wrap((req, res) => {
     })();
   }
   res.json(L.toIssue(L.getIssueRow(row.key)));
-}));
+});
+r.post('/issues/:key/rank', handleRank);
+r.put('/issues/:key/rank', handleRank);
 
 // ---------- comments ----------
 function mentionedUsers(body) {

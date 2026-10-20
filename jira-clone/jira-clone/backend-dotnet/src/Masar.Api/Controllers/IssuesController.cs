@@ -70,6 +70,7 @@ public class IssuesController : ControllerBase
     }
 
     [HttpPut("issues/{key}/rank")]
+    [HttpPost("issues/{key}/rank")]
     public async Task<ActionResult<IssueDto>> RankIssue(string key, [FromBody] RankIssueRequest request, CancellationToken cancellationToken)
     {
         var issue = await _mediator.Send(new RankIssueCommand(key, request), cancellationToken);

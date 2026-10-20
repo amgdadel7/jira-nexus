@@ -8,7 +8,16 @@ export const issuesApi = {
   remove: (key) => req('DELETE', `/api/issues/${key}`),
   clone: (key) => req('POST', `/api/issues/${key}/clone`),
   bulk: (payload) => req('POST', '/api/issues/bulk', payload),
-  rank: (key, pos) => req('POST', `/api/issues/${key}/rank`, pos),
+  rank: async (key, pos) => {
+    try {
+      return await req('PUT', `/api/issues/${key}/rank`, pos)
+    } catch (err) {
+      if (err?.status === 405) {
+        return await req('POST', `/api/issues/${key}/rank`, pos)
+      }
+      throw err
+    }
+  },
   addComment: (key, body) => req('POST', `/api/issues/${key}/comments`, { body }),
   editComment: (id, body) => req('PATCH', `/api/comments/${id}`, { body }),
   deleteComment: (id) => req('DELETE', `/api/comments/${id}`),
