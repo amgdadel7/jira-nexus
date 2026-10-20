@@ -122,6 +122,7 @@ export default function TimelineView() {
 
   return (
     <div className="timeline-view">
+      <h1 className="sr-only">Timeline - {meta.project.name}</h1>
       <div className="toolbar tl-toolbar">
         <label className="list-search"><Icon name="search" size={16} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search timeline" /></label>
         <label className="check-label"><input type="checkbox" checked={showDone} onChange={(e) => setShowDone(e.target.checked)} />Show completed</label>

@@ -44,7 +44,7 @@ export function AutomationSection() {
   const load = useCallback(() => api.automation(pk).then(setData).catch((e) => setErr(e.message)), [pk])
   useEffect(() => { if (can('ADMINISTER_PROJECT')) load() }, [load]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!can('ADMINISTER_PROJECT')) return <div><h2>Automation</h2><div className="notice-inline"><Icon name="lock" size={14} />Only project administrators can manage automation rules.</div></div>
+  if (!can('ADMINISTER_PROJECT')) return <div><h1>Automation</h1><div className="notice-inline"><Icon name="lock" size={14} />Only project administrators can manage automation rules.</div></div>
   if (err) return <div className="field-error"><Icon name="warning" size={14} />{err}</div>
   if (!data) return <div className="spinner" />
 
@@ -61,7 +61,7 @@ export function AutomationSection() {
   return (
     <div className="auto-page" data-testid="automation">
       <div className="row-between">
-        <div><h2 style={{ margin: 0 }}>Automation</h2><p className="muted" style={{ margin: '4px 0 0' }}>Automate repetitive work with rules: <b>when</b> something happens, <b>if</b> conditions match, <b>then</b> do something.</p></div>
+        <div><h1 style={{ margin: 0 }}>Automation</h1><p className="muted" style={{ margin: '4px 0 0' }}>Automate repetitive work with rules: <b>when</b> something happens, <b>if</b> conditions match, <b>then</b> do something.</p></div>
         <button className="btn primary" onClick={() => setEditing({})}><Icon name="plus" size={16} />Create rule</button>
       </div>
       <div className="auto-usage">
@@ -305,7 +305,7 @@ export function ImportSection() {
   const [over, setOver] = useState(false)
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState(null)
-  if (!can('CREATE_ISSUES')) return <div><h2>Import work items</h2><div className="notice-inline"><Icon name="lock" size={14} />You need the “Create work items” permission to import.</div></div>
+  if (!can('CREATE_ISSUES')) return <div><h1>Import work items</h1><div className="notice-inline"><Icon name="lock" size={14} />You need the “Create work items” permission to import.</div></div>
   const readFile = (file) => { if (!file) return; const r = new FileReader(); r.onload = () => { setCsv(String(r.result)); setPreview(null); setDone(null) }; r.readAsText(file) }
   const check = async () => {
     setErr(null); setBusy(true)
@@ -317,7 +317,7 @@ export function ImportSection() {
   }
   return (
     <div className="auto-page" data-testid="import">
-      <div><h2 style={{ margin: 0 }}>Import work items from CSV</h2><p className="muted" style={{ margin: '4px 0 0' }}>Bring work from a spreadsheet or another tool into {meta.project.name}. Columns are matched by header name; you can preview before anything is created.</p></div>
+      <div><h1 style={{ margin: 0 }}>Import work items from CSV</h1><p className="muted" style={{ margin: '4px 0 0' }}>Bring work from a spreadsheet or another tool into {meta.project.name}. Columns are matched by header name; you can preview before anything is created.</p></div>
       <div className={`import-drop ${over ? 'over' : ''}`} onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={() => setOver(false)}
         onDrop={(e) => { e.preventDefault(); setOver(false); readFile(e.dataTransfer.files?.[0]) }}>
         <Icon name="upload" size={28} /><div><b>Drop a .csv file here</b> or <label className="link" style={{ cursor: 'pointer' }}>browse<input type="file" accept=".csv,text/csv" hidden onChange={(e) => { readFile(e.target.files?.[0]); e.target.value = '' }} /></label></div>

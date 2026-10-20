@@ -59,6 +59,7 @@ export default function IssueModal({ issueKey, onClose, onNavigate }) {
 
   return (
     <Modal onClose={onClose} width={1100} className="issue-modal" labelledBy="issue-summary">
+      <h1 className="sr-only" id="issue-summary">{issue ? `${issue.key}: ${issue.summary}` : `Work item ${issueKey}`}</h1>
       {!issue ? <SkeletonIssue /> : (
         <>
           <div className="issue-topbar">

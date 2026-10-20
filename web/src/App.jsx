@@ -221,15 +221,15 @@ function Shell({ onLogout }) {
   }
 }, [meta, refreshKey, bump, refreshMeta, openIssue, openCreate, openList, navigate, toast, filters, refreshFilters, onLogout, online, openModal, prefs, savePrefs])
 
-  if (metaError) return <div className="fatal"><Icon name="warning" size={28} /><h2>Can’t reach the server</h2><p>{metaError}</p><button className="btn primary" onClick={() => { setMetaError(null); loadMeta() }}>Try again</button></div>
+  if (metaError) return <div className="fatal"><Icon name="warning" size={28} /><h1>Can’t reach the server</h1><p>{metaError}</p><button className="btn primary" onClick={() => { setMetaError(null); loadMeta() }}>Try again</button></div>
   if (meta?.noAccess) {
     return (
-      <div className="fatal"><Icon name="lock" size={28} /><h2>You don’t have access to any projects yet</h2>
+      <div className="fatal"><Icon name="lock" size={28} /><h1>You don’t have access to any projects yet</h1>
         <p>Ask a project administrator to add you to a project, or ask a site administrator for access.</p>
         <button className="btn" onClick={onLogout}>Log out</button></div>
     )
   }
-  if (!ctx) return <div className="app-loading"><JiraLogo size={40} /><div className="spinner" /></div>
+  if (!ctx) return <div className="app-loading"><h1 className="sr-only">Loading Masar</h1><JiraLogo size={40} /><div className="spinner" /></div>
   const switching = (loc.page === 'project' || loc.page === 'settings') && meta.project.key !== loc.project
   const tabs = tabsFor(meta.project)
   const view = tabs.some((t) => t.id === loc.view) ? loc.view : 'list'
@@ -339,8 +339,8 @@ function Root() {
     if (text) setNotice({ text })
   }, [])
 
-  if (window.location.pathname === '/pricing') return auth.state === 'loading' ? <div className="app-loading"><JiraLogo size={40} /><div className="spinner" /></div> : <PricingPage loggedIn={auth.state === 'in'} />
-  if (auth.state === 'loading') return <div className="app-loading"><JiraLogo size={40} /><div className="spinner" /></div>
+  if (window.location.pathname === '/pricing') return auth.state === 'loading' ? <div className="app-loading"><h1 className="sr-only">Loading pricing</h1><JiraLogo size={40} /><div className="spinner" /></div> : <PricingPage loggedIn={auth.state === 'in'} />
+  if (auth.state === 'loading') return <div className="app-loading"><h1 className="sr-only">Loading Masar</h1><JiraLogo size={40} /><div className="spinner" /></div>
   if (auth.state === 'out') {
     return (
       <LoginPage

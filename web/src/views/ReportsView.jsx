@@ -20,6 +20,7 @@ export default function ReportsView() {
   useEffect(() => { localStorage.setItem('jc.report', report) }, [report])
   return (
     <div className="reports">
+      <h1 className="sr-only">Reports</h1>
       <aside className="reports-nav">
         <h3>Reports</h3>
         {REPORTS.map((r) => (

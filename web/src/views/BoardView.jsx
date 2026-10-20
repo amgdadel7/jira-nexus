@@ -79,6 +79,7 @@ export default function BoardView() {
 
   return (
     <div className="board-view">
+      <h1 className="sr-only">Board - {meta.project.name}</h1>
       {sprint && (
         <div className="sprint-bar">
           <div className="sprint-bar-main">

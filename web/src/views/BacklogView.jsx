@@ -77,6 +77,7 @@ export default function BacklogView() {
 
   return (
     <div className="backlog-view">
+      <h1 className="sr-only">Backlog - {meta.project.name}</h1>
       <div className="toolbar backlog-toolbar">
         <label className="list-search"><Icon name="search" size={16} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search backlog" /></label>
         <div className="avatar-filter">

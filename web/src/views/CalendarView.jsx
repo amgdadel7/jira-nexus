@@ -63,6 +63,7 @@ export default function CalendarView() {
 
   return (
     <div className="calendar-view">
+      <h1 className="sr-only">Calendar - {meta.project.name}</h1>
       <div className="toolbar cal-toolbar">
         <div className="cal-nav">
           <button className="btn" onClick={() => { const d = new Date(); setCursor(new Date(d.getFullYear(), d.getMonth(), 1)) }}>Today</button>

@@ -27,7 +27,7 @@ export default function FormsView() {
     <div className="page-pad">
       <div className="page-head">
         <div>
-          <h2>Forms</h2>
+          <h1>Forms</h1>
           <p className="muted">Collect requests with forms. Each submission creates a work item in this project.</p>
         </div>
         <button className="btn primary" onClick={() => setEditing({})}><Icon name="plus" size={16} />Create form</button>

@@ -52,7 +52,7 @@ export default function ReleasesView() {
   return (
     <div className="releases">
       <div className="view-head">
-        <div><h2>Releases</h2><p className="muted">Group work into versions, track progress and release when it ships. Set a work item’s <b>Fix version</b> to add it.</p></div>
+        <div><h1>Releases</h1><p className="muted">Group work into versions, track progress and release when it ships. Set a work item’s <b>Fix version</b> to add it.</p></div>
         {canManage ? <button className="btn primary" onClick={() => setEditing({})}><Icon name="plus" size={16} />Create version</button> : <span className="readonly-chip" title="You need the Manage releases permission"><Icon name="lock" size={14} />View only</span>}
       </div>
       <div className="toolbar">

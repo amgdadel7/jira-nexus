@@ -50,7 +50,7 @@ function DetailsSection() {
   }
   return (
     <form onSubmit={save} className="settings-form">
-      <h2>Details</h2>
+      <h1>Details</h1>
       {!canEdit && <ReadOnlyNote />}
       <div className="profile-head"><ProjectAvatar size={56} color={f.color} /><div><b>{f.name}</b><div className="muted">Key: {p.key} · Team-managed {p.type === 'software' ? 'software' : 'business'}</div></div></div>
       <fieldset disabled={!canEdit} className="plain-fieldset">
@@ -155,7 +155,7 @@ function AccessSection() {
   const SOURCE = { 'site-admin': 'Site administrator', lead: 'Project lead', member: null }
   return (
     <div>
-      <h2>Access</h2>
+      <h1>Access</h1>
       <PlanLock feature="permissions" />
       {!can && <ReadOnlyNote />}
       <h3 className="settings-sub">Project access</h3>
@@ -221,7 +221,7 @@ function PermissionsSection() {
   return (
     <div>
       <div className="settings-sub-row">
-        <div><h2>Permissions</h2><p className="muted">Choose what each project role can do. {data.isDefault ? <span className="lozenge todo">Default scheme</span> : <span className="lozenge inprogress">Customised</span>}</p></div>
+        <div><h1>Permissions</h1><p className="muted">Choose what each project role can do. {data.isDefault ? <span className="lozenge todo">Default scheme</span> : <span className="lozenge inprogress">Customised</span>}</p></div>
         {data.canManage && <div className="inline-flex"><button className="btn subtle" onClick={reset} disabled={data.isDefault}>Reset to defaults</button><button className="btn primary" onClick={save} disabled={!dirty}>Save changes</button></div>}
       </div>
       <PlanLock feature="permissions" />
@@ -301,7 +301,7 @@ function ComponentsSection() {
   return (
     <div>
       <div className="settings-sub-row">
-        <div><h2>Components</h2><p className="muted">Group work items into parts of the product and route new work to the right person.</p></div>
+        <div><h1>Components</h1><p className="muted">Group work items into parts of the product and route new work to the right person.</p></div>
         {canEdit && <button className="btn primary" onClick={() => setEditing({})}><Icon name="plus" size={16} />Create component</button>}
       </div>
       {!canEdit && <ReadOnlyNote />}
@@ -353,7 +353,7 @@ function WorkflowsSection() {
     <div className="workflows-section">
       <div className="settings-sub-row">
         <div>
-          <h2>Workflows</h2>
+          <h1>Workflows</h1>
           <p className="muted">Manage lifecycle stages, transitions, and rules for work items in this project.</p>
         </div>
       </div>
@@ -452,7 +452,7 @@ function CustomFieldsSection() {
     <div className="fields-section">
       <div className="settings-sub-row">
         <div>
-          <h2>Custom Fields & Screens</h2>
+          <h1>Custom Fields & Screens</h1>
           <p className="muted">Configure fields and layout available for work items in this project.</p>
         </div>
         {canEdit && (
@@ -570,7 +570,7 @@ function BoardSection() {
   }
   return (
     <form onSubmit={save}>
-      <h2>Board</h2>
+      <h1>Board</h1>
       {!canEdit && <ReadOnlyNote />}
       <fieldset disabled={!canEdit} className="plain-fieldset">
         <h3 className="settings-sub">Column limits (WIP)</h3>
@@ -599,13 +599,13 @@ function TrashSection() {
   const [purging, setPurging] = useState(null)
   const load = useCallback(() => api.trash(meta.project.key).then(setData).catch((e) => setErr(e.message)), [meta.project.key])
   useEffect(() => { load() }, [load])
-  if (!can('DELETE_ISSUES')) return <div><h2>Recycle bin</h2><ReadOnlyNote>You need the “Delete work items” permission to see the recycle bin.</ReadOnlyNote></div>
+  if (!can('DELETE_ISSUES')) return <div><h1>Recycle bin</h1><ReadOnlyNote>You need the “Delete work items” permission to see the recycle bin.</ReadOnlyNote></div>
   if (err) return <div className="field-error"><Icon name="warning" size={14} />{err}</div>
   if (!data) return <div className="spinner" />
   const restore = async (e) => { try { const r = await api.restoreTrash(e.id); toast(`${r.key} restored`); bump(); load(); openIssue(r.key) } catch (e2) { toast(e2.message, { error: true }) } }
   return (
     <div>
-      <h2>Recycle bin</h2>
+      <h1>Recycle bin</h1>
       <p className="muted">Deleted work items stay here for {data.retentionDays} days, with their comments, attachments, links and history. After that they’re permanently deleted.</p>
       {data.items.length === 0 ? <div className="empty-state"><Icon name="trash" size={32} /><p>The recycle bin is empty.</p></div> : (
         <table className="data-table trash-table">
@@ -688,7 +688,7 @@ function AuditSection() {
   const { meta, can } = useApp()
   return (
     <div>
-      <h2>Audit log</h2>
+      <h1>Audit log</h1>
       <p className="muted">A record of changes to this project’s settings, people, permissions and deleted work.</p>
       {can('ADMINISTER_PROJECT') ? <AuditTable project={meta.project.key} /> : <ReadOnlyNote>Only project administrators can see the audit log.</ReadOnlyNote>}
     </div>
@@ -729,6 +729,7 @@ export default function ProjectSettingsPage({ section, onSection }) {
       </nav>
       <section className="settings-content" key={`${meta.project.key}-${current}`}>
         <div className="breadcrumbs muted small">Projects / {meta.project.name} / Project settings</div>
+        <h1 className="sr-only">{meta.project.name} – {sections.find((s) => s.id === current)?.label || 'Project settings'}</h1>
         <Section />
       </section>
     </div>

@@ -47,7 +47,7 @@ export default function CodeView() {
   return (
     <div className="page-pad">
       <div className="page-head">
-        <div><h2>Code</h2><p className="muted">Branches, commits and pull requests that mention a work item key (like KAN-12) are linked automatically.</p></div>
+        <div><h1>Code</h1><p className="muted">Branches, commits and pull requests that mention a work item key (like KAN-12) are linked automatically.</p></div>
         <button className="btn" onClick={() => setShowHelp((s) => !s)}><Icon name="info" size={16} />Connect a repository</button>
       </div>
       {showHelp && (

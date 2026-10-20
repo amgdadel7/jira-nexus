@@ -189,6 +189,7 @@ export default function ListView({ jql, setJql }) {
 
   return (
     <div className="list-view">
+      <h1 className="sr-only">List - {meta.project.name}</h1>
       <Toolbar
         mode={mode} setMode={setMode} jql={jql} setJql={setJql} error={error} isCustom={isCustom}
         basic={basic} searchText={searchText} onSearchChange={onSearchChange} toggleIn={toggleIn}

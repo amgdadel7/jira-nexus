@@ -29,6 +29,7 @@ export default function SummaryView({ onViewList }) {
 
   return (
     <div className="summary-view">
+      <h1 className="sr-only">Summary - {meta.project.name}</h1>
       <div className="stat-row">
         {stats.map((s) => (
           <button key={s.label} className="stat-card" onClick={() => onViewList(s.jql)}>

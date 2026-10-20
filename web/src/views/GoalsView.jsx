@@ -45,7 +45,7 @@ export default function GoalsView() {
   return (
     <div className="page-pad">
       <div className="page-head">
-        <div><h2>Goals</h2><p className="muted">Connect work to the outcomes that matter. Progress is calculated from linked work items and their children.</p></div>
+        <div><h1>Goals</h1><p className="muted">Connect work to the outcomes that matter. Progress is calculated from linked work items and their children.</p></div>
         {canGlobal('MANAGE_GOALS') && <button className="btn primary" onClick={() => setCreating(true)}><Icon name="plus" size={16} />Create goal</button>}
       </div>
       <div className="goal-summary">
