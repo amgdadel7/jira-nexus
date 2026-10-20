@@ -1,6 +1,10 @@
 // تهيئة مِرآة لمراقبة الأخطاء في أول سطر قبل أي شيء
 const mirat = require('./mirat-node');
-mirat.init(process.env.MIRAT_DSN || 'https://mirat-monitor.onrender.com/api/events/RgL_RlWnFwK3hv8s71BZu_89R2IOUpIO', {
+const DEFAULT_MIRAT_DSN = process.env.NODE_ENV === 'production'
+  ? 'https://mirat-monitor.onrender.com/api/events/RgL_RlWnFwK3hv8s71BZu_89R2IOUpIO'
+  : 'http://localhost:8500/api/events/r4FaLEGhlRCF-gf4acwyZXnulssXHvTc';
+
+mirat.init(process.env.MIRAT_DSN || DEFAULT_MIRAT_DSN, {
   environment: process.env.NODE_ENV || 'development',
   release: '1.0.0'
 });
