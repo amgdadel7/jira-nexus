@@ -5,6 +5,11 @@ const seed = require('./seed');
 const { authenticate, requireAuth } = require('./auth');
 const events = require('./events');
 const openapi = require('./openapi');
+const mirat = require('./mirat-node');
+
+const MIRAT_DSN = process.env.MIRAT_DSN || "https://mirat-monitor.onrender.com/api/events/RgL_RlWnFwK3hv8s71BZu_89R2IOUpIO";
+mirat.init(MIRAT_DSN, { environment: process.env.NODE_ENV || "production" });
+
 
 function createApp({ serveClient = true } = {}) {
   seed();
@@ -79,6 +84,7 @@ function createApp({ serveClient = true } = {}) {
     if (err.type === 'entity.too.large') return res.status(413).json({ error: 'The upload is too large (max 10 MB).' });
     if (err.type === 'entity.parse.failed') return res.status(400).json({ error: 'Invalid JSON body.' });
     console.error(err);
+    mirat.captureException(err, { path: req.path, method: req.method, ip: req.ip });
     res.status(500).json({ error: 'Internal server error' });
   });
   return app;

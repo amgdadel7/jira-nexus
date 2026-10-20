@@ -12,6 +12,8 @@ services:
         value: 8080
       - key: NODE_ENV
         value: production
+      - key: MIRAT_DSN
+        value: https://mirat-monitor.onrender.com/api/events/RgL_RlWnFwK3hv8s71BZu_89R2IOUpIO
 
   # 2. React Web Frontend (Vite)
   - type: web
