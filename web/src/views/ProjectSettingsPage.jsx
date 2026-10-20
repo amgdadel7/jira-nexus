@@ -101,8 +101,8 @@ function RoleSelect({ value, onChange, disabled, roles, label }) {
 
 function AddPeopleModal({ data, onClose, onAdded }) {
   const { activeUsers, toast } = useApp()
-  const taken = new Set(data.people.filter((p) => p.explicit || p.source !== 'access-level').map((p) => p.user.id))
-  const candidates = activeUsers.filter((u) => !taken.has(u.id))
+  const taken = new Set((data?.people || []).filter((p) => p.explicit || p.source !== 'access-level').map((p) => p.user.id))
+  const candidates = (activeUsers || []).filter((u) => !taken.has(u.id))
   const [userId, setUserId] = useState(candidates[0]?.id || '')
   const [role, setRole] = useState('member')
   const [err, setErr] = useState(null)

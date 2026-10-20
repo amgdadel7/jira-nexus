@@ -38,16 +38,34 @@ function GlobalPermissionsTab() {
       </div>
       {!data.canManage && <div className="notice-inline"><Icon name="lock" size={14} />Only site administrators can change global permissions.</div>}
       <table className="data-table perm-table global-perm-table">
-        <thead><tr><th>Permission</th>{data.roles.map((r) => <th key={r.id} className="center" style={{ width: 160 }}>{r.label}</th>)}<th className="center" style={{ width: 90 }}>You</th></tr></thead>
+        <thead><tr><th>Permission</th>{(data.roles || []).map((r) => <th key={r.id} className="center" style={{ width: 160 }}>{r.label}</th>)}<th className="center" style={{ width: 90 }}>You</th></tr></thead>
         <tbody>
-          {data.permissions.map((p) => (
+          {(data.permissions || []).map((p) => (
             <tr key={p.key} data-perm={p.key}>
               <td><b>{p.name}</b><div className="muted small">{p.description}</div></td>
-              {data.roles.map((r) => (
-                <td key={r.id} className="center"><input type="checkbox" aria-label={`${p.name} – ${r.label}`} checked={draft[p.key].includes(r.id)} disabled={!data.canManage || r.id === 'admin'}
-                  onChange={() => setDraft((d) => ({ ...d, [p.key]: d[p.key].includes(r.id) ? d[p.key].filter((x) => x !== r.id) : [...d[p.key], r.id] }))} /></td>
-              ))}
-              <td className="center">{data.mine.includes(p.key) ? <Icon name="check" size={16} strokeWidth={2.6} style={{ color: '#22A06B' }} /> : <Icon name="close" size={14} style={{ color: '#AE2E24' }} />}</td>
+              {(data.roles || []).map((r) => {
+                const currentRoles = Array.isArray(draft?.[p.key]) ? draft[p.key] : (data.defaults?.[p.key] || ['admin', 'member'])
+                return (
+                  <td key={r.id} className="center">
+                    <input
+                      type="checkbox"
+                      aria-label={`${p.name} – ${r.label}`}
+                      checked={currentRoles.includes(r.id)}
+                      disabled={!data.canManage || r.id === 'admin'}
+                      onChange={() => setDraft((d) => {
+                        const prevRoles = Array.isArray(d?.[p.key]) ? d[p.key] : (data.defaults?.[p.key] || ['admin', 'member'])
+                        return {
+                          ...d,
+                          [p.key]: prevRoles.includes(r.id)
+                            ? prevRoles.filter((x) => x !== r.id)
+                            : [...prevRoles, r.id]
+                        }
+                      })}
+                    />
+                  </td>
+                )
+              })}
+              <td className="center">{(data.mine || []).includes(p.key) ? <Icon name="check" size={16} strokeWidth={2.6} style={{ color: '#22A06B' }} /> : <Icon name="close" size={14} style={{ color: '#AE2E24' }} />}</td>
             </tr>
           ))}
         </tbody>
@@ -63,15 +81,16 @@ function UsersTab() {
   const [showInactive, setShowInactive] = useState(false)
   const [editing, setEditing] = useState(null)
   const [confirm, setConfirm] = useState(null)
-  const load = useCallback(() => api.users().then(setUsers).catch((e) => toast({ title: 'Failed to load people', description: e.message, error: true })), [toast])
+  const load = useCallback(() => api.users().then((res) => setUsers(Array.isArray(res) ? res : (res?.users || []))).catch((e) => toast({ title: 'Failed to load people', description: e.message, error: true })), [toast])
   useEffect(() => { load() }, [load])
 
   const run = async (fn, ok) => {
     try { await fn(); await load(); refreshMeta?.(); bump(); if (ok) toast(ok) } catch (e) { toast({ title: 'Something went wrong', description: e.message, error: true }) }
   }
   if (!users) return <div className="center-pad"><div className="spinner" /></div>
-  const shown = users.filter((u) => (showInactive || u.active) && (!q || `${u.name} ${u.email} ${u.title || ''}`.toLowerCase().includes(q.toLowerCase())))
-  const inactive = users.filter((u) => !u.active).length
+  const userList = Array.isArray(users) ? users : []
+  const shown = userList.filter((u) => (showInactive || u.active) && (!q || `${u.name} ${u.email} ${u.title || ''}`.toLowerCase().includes(q.toLowerCase())))
+  const inactive = userList.filter((u) => !u.active).length
 
   return (
     <div className="page-pad">

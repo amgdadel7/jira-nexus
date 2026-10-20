@@ -198,10 +198,15 @@ function Shell({ onLogout }) {
     if (m === 'project') navigate({ page: 'settings', section: 'details' })
     else setModal(m)
   }, [navigate])
-  const ctx = useMemo(() => meta && !meta.noAccess && ({
-    meta, users: meta.users, activeUsers: meta.users.filter((u) => u.active),
-    userById: Object.fromEntries(meta.users.map((u) => [u.id, u])),
-    currentUser: meta.users.find((u) => u.id === meta.currentUserId) || meta.currentUser,
+  const ctx = useMemo(() => {
+    if (!meta || meta.noAccess) return null
+    const userList = Array.isArray(meta.users) ? meta.users : []
+    return {
+      meta,
+      users: userList,
+      activeUsers: userList.filter((u) => u.active),
+      userById: Object.fromEntries(userList.map((u) => [u.id, u])),
+      currentUser: userList.find((u) => u.id === meta.currentUserId) || meta.currentUser,
     isAdmin: meta.currentUser?.role === 'admin',
     refreshKey, bump, refreshMeta, openIssue, openCreate, openList, navigate, toast, filters, refreshFilters, onLogout,
     // permissions for the current project (from /api/meta) and global ones
@@ -213,7 +218,8 @@ function Shell({ onLogout }) {
     openModal, projectKey: meta.project.key, project: meta.project, projects: meta.projects || [meta.project],
     online, isSoftware: meta.project.type === 'software', prefs, savePrefs,
     openProject: (key, view) => navigate({ page: 'project', project: key, ...(view ? { view } : {}) }),
-  }), [meta, refreshKey, bump, refreshMeta, openIssue, openCreate, openList, navigate, toast, filters, refreshFilters, onLogout, online, openModal, prefs, savePrefs])
+  }
+}, [meta, refreshKey, bump, refreshMeta, openIssue, openCreate, openList, navigate, toast, filters, refreshFilters, onLogout, online, openModal, prefs, savePrefs])
 
   if (metaError) return <div className="fatal"><Icon name="warning" size={28} /><h2>Can’t reach the server</h2><p>{metaError}</p><button className="btn primary" onClick={() => { setMetaError(null); loadMeta() }}>Try again</button></div>
   if (meta?.noAccess) {
