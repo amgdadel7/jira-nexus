@@ -22,7 +22,6 @@ export default function FormsView() {
   const load = useCallback(() => api.forms().then(setForms).catch((e) => toast({ title: 'Failed to load forms', description: e.message, error: true })), [toast])
   useEffect(() => { load() }, [load, refreshKey])
 
-  if (!forms) return <div className="center-pad"><div className="spinner" /></div>
   return (
     <div className="page-pad">
       <div className="page-head">
@@ -32,9 +31,13 @@ export default function FormsView() {
         </div>
         <button className="btn primary" onClick={() => setEditing({})}><Icon name="plus" size={16} />Create form</button>
       </div>
-      {!forms.length && <div className="empty-state"><h3>No forms yet</h3><p>Create a form to start collecting requests.</p></div>}
-      <div className="card-grid">
-        {forms.map((f) => (
+      {!forms ? (
+        <div className="center-pad"><div className="spinner" /></div>
+      ) : (
+        <>
+          {!forms.length && <div className="empty-state"><h3>No forms yet</h3><p>Create a form to start collecting requests.</p></div>}
+          <div className="card-grid">
+            {forms.map((f) => (
           <div key={f.id} className={`form-card ${f.active ? '' : 'inactive'}`}>
             <div className="form-card-top">
               <span className="form-icon"><Icon name="forms" size={20} /></span>
@@ -69,6 +72,8 @@ export default function FormsView() {
           </div>
         ))}
       </div>
+    </>
+  )}
       {editing && <FormEditor form={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load() }} />}
       {filling && <FormFill form={filling} onClose={() => setFilling(null)} onSubmitted={(issue) => { setFilling(null); load(); bump(); toast({ title: `Thanks! ${issue.key} was created`, action: { label: 'View work item', onClick: () => openIssue(issue.key) } }) }} />}
       {confirm && <Confirm title={`Delete “${confirm.name}”?`} body="The form will be removed. Work items already created from it are kept." onConfirm={async () => { await api.deleteForm(confirm.id); load() }} onClose={() => setConfirm(null)} />}

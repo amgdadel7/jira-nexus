@@ -9,7 +9,7 @@ const addDays = (d, n) => new Date(Date.parse(`${d}T00:00:00Z`) + n * 864e5).toI
 export const daysLeft = (end) => Math.ceil((Date.parse(`${end}T23:59:59Z`) - Date.now()) / 864e5)
 
 export default function BacklogView() {
-  const { refreshKey, bump, toast, openIssue, userById, activeUsers, refreshMeta, can } = useApp()
+  const { meta, refreshKey, bump, toast, openIssue, userById, activeUsers, refreshMeta, can } = useApp()
   const canSprints = can('MANAGE_SPRINTS'); const canMove = can('EDIT_ISSUES'); const canCreate = can('CREATE_ISSUES')
   const [sprints, setSprints] = useState(null)
   const [issues, setIssues] = useState(null)
@@ -33,7 +33,7 @@ export default function BacklogView() {
   const visible = useMemo(() => (issues || []).filter((i) =>
     (!q || `${i.key} ${i.summary}`.toLowerCase().includes(q.toLowerCase())) && (!who.length || who.includes(i.assigneeId ?? null))), [issues, q, who])
 
-  if (!sprints || !issues) return <div className="center-pad"><div className="spinner" /></div>
+  if (!sprints || !issues) return <div className="center-pad"><h1 className="sr-only">Backlog - {meta?.project?.name || 'Project'}</h1><div className="spinner" /></div>
   const active = sprints.find((s) => s.state === 'active')
   const sections = [...sprints.map((s) => ({ id: s.id, sprint: s, name: s.name })), { id: 'backlog', sprint: null, name: 'Backlog' }]
   const itemsOf = (sec) => visible.filter((i) => (sec.sprint ? i.sprint === sec.sprint.name : !i.sprint))
@@ -77,7 +77,7 @@ export default function BacklogView() {
 
   return (
     <div className="backlog-view">
-      <h1 className="sr-only">Backlog - {meta.project.name}</h1>
+      <h1 className="sr-only">Backlog - {meta?.project?.name || 'Project'}</h1>
       <div className="toolbar backlog-toolbar">
         <label className="list-search"><Icon name="search" size={16} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search backlog" /></label>
         <div className="avatar-filter">

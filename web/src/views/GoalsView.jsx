@@ -38,9 +38,8 @@ export default function GoalsView() {
     try { const n = await api.updateGoal(g.id, fields); setGoals((l) => l.map((x) => (x.id === n.id ? n : x))) } catch (e) { toast({ title: 'Couldn’t update goal', description: e.message, error: true }) }
   }
 
-  if (!goals) return <div className="center-pad"><div className="spinner" /></div>
-  const shown = goals.filter((g) => (!q || g.name.toLowerCase().includes(q.toLowerCase())) && (!status || g.status === status))
-  const counts = STATUSES.map((s) => [s, goals.filter((g) => g.status === s).length]).filter(([, c]) => c)
+  const shown = goals ? goals.filter((g) => (!q || g.name.toLowerCase().includes(q.toLowerCase())) && (!status || g.status === status)) : []
+  const counts = goals ? STATUSES.map((s) => [s, goals.filter((g) => g.status === s).length]).filter(([, c]) => c) : []
 
   return (
     <div className="page-pad">
@@ -48,31 +47,37 @@ export default function GoalsView() {
         <div><h1>Goals</h1><p className="muted">Connect work to the outcomes that matter. Progress is calculated from linked work items and their children.</p></div>
         {canGlobal('MANAGE_GOALS') && <button className="btn primary" onClick={() => setCreating(true)}><Icon name="plus" size={16} />Create goal</button>}
       </div>
-      <div className="goal-summary">
-        {counts.map(([s, c]) => <button key={s} className={`goal-summary-item ${status === s ? 'on' : ''}`} onClick={() => setStatus(status === s ? '' : s)}><GoalStatus status={s} /><b>{c}</b></button>)}
-      </div>
-      <div className="toolbar">
-        <label className="list-search"><Icon name="search" size={16} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search goals" /></label>
-        {status && <button className="btn subtle" onClick={() => setStatus('')}>Clear status filter</button>}
-      </div>
-      <div className="table-wrap">
-        <table className="simple-table goals-table">
-          <thead><tr><th>Goal</th><th style={{ width: 150 }}>Status</th><th style={{ width: 200 }}>Progress</th><th style={{ width: 90 }}>Work</th><th style={{ width: 170 }}>Owner</th><th style={{ width: 130 }}>Target date</th></tr></thead>
-          <tbody>
-            {shown.map((g) => (
-              <tr key={g.id} onClick={() => setOpenId(g.id)} className="clickable">
-                <td><div className="goal-name"><span className="goal-icon"><Icon name="goals" size={16} /></span><div><b>{g.name}</b>{g.description && <div className="muted small truncate" style={{ maxWidth: 420 }}>{g.description}</div>}</div></div></td>
-                <td onClick={(e) => e.stopPropagation()}><StatusPicker value={g.status} onChange={(s) => update(g, { status: s })} /></td>
-                <td><Progress p={g.progress} /></td>
-                <td><span className="count-pill">{g.issues.length}</span></td>
-                <td>{g.ownerId ? <span className="inline-flex"><Avatar user={userById[g.ownerId]} size={24} />{userById[g.ownerId]?.name}</span> : <span className="muted">No owner</span>}</td>
-                <td className={g.targetDate && g.targetDate < todayStr() && !['done', 'cancelled'].includes(g.status) ? 'overdue' : ''}>{g.targetDate ? fmtDate(g.targetDate) : <span className="muted">—</span>}</td>
-              </tr>
-            ))}
-            {!shown.length && <tr><td colSpan={6} className="empty-row">No goals match.</td></tr>}
-          </tbody>
-        </table>
-      </div>
+      {!goals ? (
+        <div className="center-pad"><div className="spinner" /></div>
+      ) : (
+        <>
+          <div className="goal-summary">
+            {counts.map(([s, c]) => <button key={s} className={`goal-summary-item ${status === s ? 'on' : ''}`} onClick={() => setStatus(status === s ? '' : s)}><GoalStatus status={s} /><b>{c}</b></button>)}
+          </div>
+          <div className="toolbar">
+            <label className="list-search"><Icon name="search" size={16} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search goals" /></label>
+            {status && <button className="btn subtle" onClick={() => setStatus('')}>Clear status filter</button>}
+          </div>
+          <div className="table-wrap">
+            <table className="simple-table goals-table">
+              <thead><tr><th>Goal</th><th style={{ width: 150 }}>Status</th><th style={{ width: 200 }}>Progress</th><th style={{ width: 90 }}>Work</th><th style={{ width: 170 }}>Owner</th><th style={{ width: 130 }}>Target date</th></tr></thead>
+              <tbody>
+                {shown.map((g) => (
+                  <tr key={g.id} onClick={() => setOpenId(g.id)} className="clickable">
+                    <td><div className="goal-name"><span className="goal-icon"><Icon name="goals" size={16} /></span><div><b>{g.name}</b>{g.description && <div className="muted small truncate" style={{ maxWidth: 420 }}>{g.description}</div>}</div></div></td>
+                    <td onClick={(e) => e.stopPropagation()}><StatusPicker value={g.status} onChange={(s) => update(g, { status: s })} /></td>
+                    <td><Progress p={g.progress} /></td>
+                    <td><span className="count-pill">{g.issues.length}</span></td>
+                    <td>{g.ownerId ? <span className="inline-flex"><Avatar user={userById[g.ownerId]} size={24} />{userById[g.ownerId]?.name}</span> : <span className="muted">No owner</span>}</td>
+                    <td className={g.targetDate && g.targetDate < todayStr() && !['done', 'cancelled'].includes(g.status) ? 'overdue' : ''}>{g.targetDate ? fmtDate(g.targetDate) : <span className="muted">—</span>}</td>
+                  </tr>
+                ))}
+                {!shown.length && <tr><td colSpan={6} className="empty-row">No goals match.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
       {creating && <GoalEditor onClose={() => setCreating(false)} onSaved={(g) => { setCreating(false); setGoals((l) => [...l, g]); setOpenId(g.id) }} />}
       {openId && <GoalDetail id={openId} onClose={() => setOpenId(null)} onChanged={load} />}
     </div>

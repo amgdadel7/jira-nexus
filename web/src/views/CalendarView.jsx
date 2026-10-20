@@ -9,7 +9,7 @@ const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
 export default function CalendarView() {
-  const { refreshKey, openIssue, toast, userById, bump, activeUsers } = useApp()
+  const { meta, refreshKey, openIssue, toast, userById, bump, activeUsers } = useApp()
   const [issues, setIssues] = useState(null)
   const [cursor, setCursor] = useState(() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1) })
   const [dragKey, setDragKey] = useState(null)
@@ -48,7 +48,7 @@ export default function CalendarView() {
     try { const i = await api.create({ summary, dueDate: day }); setIssues((l) => [...l, i]); toast(`${i.key} has been created`); bump() } catch (e) { toast({ title: 'Couldn’t create', description: e.message, error: true }) }
   }
 
-  if (!issues) return <div className="center-pad"><div className="spinner" /></div>
+  if (!issues) return <div className="center-pad"><h1 className="sr-only">Calendar - {meta?.project?.name || 'Project'}</h1><div className="spinner" /></div>
   const today = todayStr()
   const Chip = ({ i, side }) => (
     <div className={`cal-chip ${statusCategory(i.status)} ${dragKey === i.key ? 'dragging' : ''}`} draggable
@@ -63,7 +63,7 @@ export default function CalendarView() {
 
   return (
     <div className="calendar-view">
-      <h1 className="sr-only">Calendar - {meta.project.name}</h1>
+      <h1 className="sr-only">Calendar - {meta?.project?.name || 'Project'}</h1>
       <div className="toolbar cal-toolbar">
         <div className="cal-nav">
           <button className="btn" onClick={() => { const d = new Date(); setCursor(new Date(d.getFullYear(), d.getMonth(), 1)) }}>Today</button>

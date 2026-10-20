@@ -12,7 +12,7 @@ const fromDay = (d) => new Date(d * DAY).toISOString().slice(0, 10)
 const todayDay = () => { const n = new Date(); return Math.floor(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) / DAY) }
 
 export default function TimelineView() {
-  const { refreshKey, openIssue, toast, userById, bump } = useApp()
+  const { meta, refreshKey, openIssue, toast, userById, bump } = useApp()
   const [issues, setIssues] = useState(null)
   const [zoom, setZoom] = useState(() => localStorage.getItem('jc.tlZoom') || 'months')
   const [collapsed, setCollapsed] = useState(() => new Set())
@@ -118,11 +118,11 @@ export default function TimelineView() {
   const ticks = []
   if (zoom === 'weeks') for (let d = range.start; d < range.end; d++) { const dt = new Date(d * DAY); if (dt.getUTCDay() === 1) ticks.push({ d, label: dt.getUTCDate() }) }
 
-  if (!issues) return <div className="center-pad"><div className="spinner" /></div>
+  if (!issues) return <div className="center-pad"><h1 className="sr-only">Timeline - {meta?.project?.name || 'Project'}</h1><div className="spinner" /></div>
 
   return (
     <div className="timeline-view">
-      <h1 className="sr-only">Timeline - {meta.project.name}</h1>
+      <h1 className="sr-only">Timeline - {meta?.project?.name || 'Project'}</h1>
       <div className="toolbar tl-toolbar">
         <label className="list-search"><Icon name="search" size={16} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search timeline" /></label>
         <label className="check-label"><input type="checkbox" checked={showDone} onChange={(e) => setShowDone(e.target.checked)} />Show completed</label>

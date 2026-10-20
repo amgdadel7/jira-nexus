@@ -24,10 +24,8 @@ export default function CodeView() {
   useEffect(() => { load() }, [load, refreshKey])
 
   const repos = useMemo(() => [...new Set((items || []).map((i) => i.repo))].sort(), [items])
-  if (!items) return <div className="center-pad"><div className="spinner" /></div>
-
-  const counts = Object.fromEntries(TABS.map((t) => [t.id, items.filter((i) => i.kind === t.id && (!repo || i.repo === repo)).length]))
-  const shown = items.filter((i) => i.kind === tab && (!repo || i.repo === repo) && (tab !== 'pr' || !prStatus || i.status === prStatus)
+  const counts = Object.fromEntries(TABS.map((t) => [t.id, (items || []).filter((i) => i.kind === t.id && (!repo || i.repo === repo)).length]))
+  const shown = (items || []).filter((i) => i.kind === tab && (!repo || i.repo === repo) && (tab !== 'pr' || !prStatus || i.status === prStatus)
     && (!q || `${i.name} ${i.ref || ''} ${i.issue?.key || ''} ${i.issue?.summary || ''}`.toLowerCase().includes(q.toLowerCase())))
 
   const setStatus = async (item, status, transition) => {
@@ -50,17 +48,21 @@ export default function CodeView() {
         <div><h1>Code</h1><p className="muted">Branches, commits and pull requests that mention a work item key (like KAN-12) are linked automatically.</p></div>
         <button className="btn" onClick={() => setShowHelp((s) => !s)}><Icon name="info" size={16} />Connect a repository</button>
       </div>
-      {showHelp && (
-        <div className="info-box">
-          <div className="info-box-head"><Icon name="info" size={18} /><b>Send commits from your CI or a git hook</b><span className="spacer" /><button className="icon-btn small" onClick={() => setShowHelp(false)}><Icon name="close" size={14} /></button></div>
-          <p>POST commits to <code>/api/webhooks/commits</code>. Every work item key in a commit message links that commit to the item. Use the session token you get from <code>POST /api/auth/login</code>.</p>
-          <pre className="code-block">{curl}</pre>
-          <button className="btn small" onClick={() => copy(curl, 'Command')}><Icon name="copy" size={14} />Copy command</button>
-        </div>
-      )}
-      <div className="code-tabs">
-        {TABS.map((t) => <button key={t.id} className={`code-tab ${tab === t.id ? 'on' : ''}`} onClick={() => setTab(t.id)}><Icon name={t.icon} size={16} />{t.label}<span className="count-pill">{counts[t.id]}</span></button>)}
-      </div>
+      {!items ? (
+        <div className="center-pad"><div className="spinner" /></div>
+      ) : (
+        <>
+          {showHelp && (
+            <div className="info-box">
+              <div className="info-box-head"><Icon name="info" size={18} /><b>Send commits from your CI or a git hook</b><span className="spacer" /><button className="icon-btn small" onClick={() => setShowHelp(false)}><Icon name="close" size={14} /></button></div>
+              <p>POST commits to <code>/api/webhooks/commits</code>. Every work item key in a commit message links that commit to the item. Use the session token you get from <code>POST /api/auth/login</code>.</p>
+              <pre className="code-block">{curl}</pre>
+              <button className="btn small" onClick={() => copy(curl, 'Command')}><Icon name="copy" size={14} />Copy command</button>
+            </div>
+          )}
+          <div className="code-tabs">
+            {TABS.map((t) => <button key={t.id} className={`code-tab ${tab === t.id ? 'on' : ''}`} onClick={() => setTab(t.id)}><Icon name={t.icon} size={16} />{t.label}<span className="count-pill">{counts[t.id]}</span></button>)}
+          </div>
       <div className="toolbar">
         <label className="list-search"><Icon name="search" size={16} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder={`Search ${TABS.find((t) => t.id === tab).label.toLowerCase()}`} /></label>
         <Dropdown trigger={({ ref, toggle }) => <button ref={ref} className={`btn ${repo ? 'selected' : ''}`} onClick={toggle}><Icon name="folder" size={14} />{repo || 'All repositories'}<Icon name="chevronDown" size={14} /></button>}>
@@ -118,6 +120,8 @@ export default function CodeView() {
           </tbody>
         </table>
       </div>
+    </>
+  )}
       {confirm && <Confirm title="Remove this development link?" body={`“${confirm.name}” will no longer appear on ${confirm.issue?.key || 'the work item'}.`} confirmLabel="Remove" onConfirm={async () => { try { await api.deleteDev(confirm.id); load() } catch (e) { toast({ title: 'Failed', description: e.message, error: true }) } }} onClose={() => setConfirm(null)} />}
     </div>
   )
