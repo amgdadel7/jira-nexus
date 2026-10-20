@@ -64,6 +64,15 @@ var app = builder.Build();
 // Global Exception Handler
 app.UseMiddleware<ErrorHandlingMiddleware>();
 
+// Security Headers
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    await next();
+});
+
 // Enable Swagger in all environments for cloud inspection
 app.UseSwagger();
 app.UseSwaggerUI(c =>

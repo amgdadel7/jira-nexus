@@ -55,7 +55,7 @@ public class ErrorHandlingMiddleware
             default:
                 _logger.LogError(exception, "Unhandled exception occurred: {Message}", exception.Message);
                 _miratClient.CaptureException(exception, context);
-                message = exception.Message;
+                message = "An unexpected error occurred. Please try again later.";
                 break;
         }
 

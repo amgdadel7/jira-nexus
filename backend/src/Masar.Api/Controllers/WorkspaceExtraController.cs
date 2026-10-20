@@ -86,4 +86,29 @@ public class WorkspaceExtraController : ControllerBase
         var webhooks = await _mediator.Send(new GetWebhooksQuery(), cancellationToken);
         return Ok(webhooks);
     }
+
+    // ---------- Development / Code (/api/dev) ----------
+    [HttpGet("dev")]
+    public ActionResult GetDevItems([FromQuery] string? kind, [FromQuery] string? repo, [FromQuery] string? status)
+    {
+        return Ok(Array.Empty<object>());
+    }
+
+    [HttpPost("issues/{key}/dev")]
+    public ActionResult AddDevItem(string key, [FromBody] System.Text.Json.JsonElement item)
+    {
+        return Ok(new { ok = true });
+    }
+
+    [HttpPatch("dev/{id}")]
+    public ActionResult UpdateDevItem(string id, [FromBody] System.Text.Json.JsonElement fields)
+    {
+        return Ok(new { ok = true });
+    }
+
+    [HttpDelete("dev/{id}")]
+    public ActionResult DeleteDevItem(string id)
+    {
+        return Ok(new { ok = true });
+    }
 }

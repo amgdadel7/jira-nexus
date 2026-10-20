@@ -348,6 +348,48 @@ public class MasarDbContext : DbContext, IApplicationDbContext
             b.HasNoKey();
         });
 
+        modelBuilder.Entity<WorkForm>(b =>
+        {
+            b.ToTable("forms");
+            b.HasKey(f => f.Id);
+            b.Property(f => f.FieldsJson).HasColumnName("fields");
+            b.Property(f => f.Enabled).HasColumnName("enabled");
+            b.Ignore(f => f.IssueType);
+        });
+
+        modelBuilder.Entity<Goal>(b =>
+        {
+            b.ToTable("goals");
+            b.HasKey(g => g.Id);
+            b.HasOne(g => g.Owner).WithMany().HasForeignKey(g => g.OwnerId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<GoalIssue>(b =>
+        {
+            b.ToTable("goal_issues");
+            b.HasKey(gi => new { gi.GoalId, gi.IssueId });
+            b.HasOne(gi => gi.Goal).WithMany(g => g.Issues).HasForeignKey(gi => gi.GoalId).OnDelete(DeleteBehavior.Cascade);
+            b.HasOne(gi => gi.Issue).WithMany().HasForeignKey(gi => gi.IssueId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<SavedFilter>(b =>
+        {
+            b.ToTable("filters");
+            b.HasKey(f => f.Id);
+        });
+
+        modelBuilder.Entity<TrashItem>(b =>
+        {
+            b.ToTable("trash");
+            b.HasKey(t => t.Id);
+        });
+
+        modelBuilder.Entity<AuditLogEntry>(b =>
+        {
+            b.ToTable("audit_log");
+            b.HasKey(a => a.Id);
+        });
+
         // Global snake_case column names mapping
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {

@@ -99,6 +99,46 @@ public class IssuesController : ControllerBase
         return Ok(comment);
     }
 
+    [HttpDelete("issues/{key}")]
+    public async Task<ActionResult> DeleteIssue(string key, CancellationToken cancellationToken)
+    {
+        var upperKey = key.ToUpperInvariant();
+        var issue = await _context.Issues.FirstOrDefaultAsync(i => i.Key == upperKey, cancellationToken);
+        if (issue == null) throw new NotFoundException($"Work item {key} not found.");
+
+        _context.Issues.Remove(issue);
+        await _context.SaveChangesAsync(cancellationToken);
+        return Ok(new { ok = true });
+    }
+
+    [HttpPatch("comments/{id:int}")]
+    public async Task<ActionResult<CommentDto>> UpdateComment(int id, [FromBody] UpdateCommentRequest request, CancellationToken cancellationToken)
+    {
+        var comment = await _context.Comments.FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+        if (comment == null) throw new NotFoundException($"Comment {id} not found.");
+
+        if (!string.IsNullOrEmpty(request.Body))
+        {
+            comment.Body = request.Body;
+            comment.UpdatedAt = DateTimeOffset.UtcNow;
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        return Ok(new CommentDto(comment.Id, comment.AuthorId, comment.Body, comment.CreatedAt, comment.UpdatedAt));
+    }
+
+    [HttpDelete("comments/{id:int}")]
+    public async Task<ActionResult> DeleteCommentById(int id, CancellationToken cancellationToken)
+    {
+        var comment = await _context.Comments.FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+        if (comment != null)
+        {
+            _context.Comments.Remove(comment);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        return Ok(new { ok = true });
+    }
+
     [HttpDelete("issues/{key}/comments/{commentId:int}")]
     public async Task<ActionResult> DeleteComment(string key, int commentId, CancellationToken cancellationToken)
     {

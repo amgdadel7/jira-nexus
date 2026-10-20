@@ -106,4 +106,24 @@ public class AuthController : ControllerBase
             }
         });
     }
+
+    [HttpGet("config")]
+    public ActionResult GetAuthConfig()
+    {
+        return Ok(new
+        {
+            siteName = "Masar",
+            signup = "open",
+            allowedDomains = Array.Empty<string>(),
+            providers = new
+            {
+                google = new { name = "Google", enabled = true, configured = true },
+                microsoft = new { name = "Microsoft", enabled = true, configured = true },
+                apple = new { name = "Apple", enabled = true, configured = true },
+                slack = new { name = "Slack", enabled = true, configured = true }
+            },
+            devCodes = false,
+            plan = new { key = "free", name = "Free" }
+        });
+    }
 }

@@ -145,3 +145,8 @@ public record RankIssueRequest(
 public record AddCommentRequest(
     [property: JsonPropertyName("body")] string Body
 );
+
+public record UpdateCommentRequest(
+    [property: JsonPropertyName("body")] string Body
+);
+
