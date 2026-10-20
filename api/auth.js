@@ -33,7 +33,13 @@ function parseCookies(header = '') {
 
 const sha256 = (s) => crypto.createHash('sha256').update(s).digest('hex');
 
-const SESSION_SECRET = process.env.SESSION_SECRET || 'masar_session_secret_prod_signing_key_jira_2026';
+const INSECURE_DEFAULT_SECRET = 'masar_session_secret_prod_signing_key_jira_2026';
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET === INSECURE_DEFAULT_SECRET || process.env.SESSION_SECRET.trim() === '') {
+    throw new Error('FATAL SECURITY ERROR: In production, SESSION_SECRET must be explicitly set to a strong, unique secret. Refusing to start with default/missing secret.');
+  }
+}
+const SESSION_SECRET = process.env.SESSION_SECRET || 'dev_session_signing_secret_only';
 
 function signSessionToken(userId, expiresEpoch, remember, salt) {
   const payload = `${userId}.${expiresEpoch}.${remember ? 1 : 0}.${salt}`;
@@ -124,36 +130,35 @@ function authenticate(req, res, next) {
   const candidates = [custom, bearer, queryToken, cookieToken].filter((t, i, a) => isCandidateToken(t) && a.indexOf(t) === i);
   const now = new Date();
   for (const token of candidates) {
-    let row = db.prepare('SELECT u.*, s.expires_at, s.last_seen_at FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token = ?').get(token);
-    
-    // Fallback: If not present in this ephemeral container's DB, verify signed HMAC
-    if (!row && token.startsWith('s_')) {
-      const verified = verifySignedToken(token);
-      if (verified) {
-        let user = db.prepare('SELECT * FROM users WHERE id = ?').get(verified.userId);
-        if (!user) {
-          // If seeded differently across instances, find by admin role
-          user = db.prepare('SELECT * FROM users WHERE active = 1 ORDER BY role = "admin" DESC, id ASC').get();
-        }
-        if (user && user.active) {
-          try {
-            db.prepare('INSERT OR REPLACE INTO sessions (token,user_id,created_at,expires_at,user_agent,last_seen_at,remember) VALUES (?,?,?,?,?,?,?)')
-              .run(token, user.id, now.toISOString(), verified.expiresAt, String(req.headers['user-agent'] || '').slice(0, 300), now.toISOString(), verified.remember ? 1 : 0);
-          } catch (e) {}
-          row = { ...user, expires_at: verified.expiresAt, last_seen_at: now.toISOString() };
-        }
-      }
+    // If the token uses HMAC signature format (s_...), verify signature integrity first
+    if (token.startsWith('s_') && !verifySignedToken(token)) {
+      req.authFailure = 'invalid_signature';
+      continue;
     }
 
-    if (row && row.expires_at > now.toISOString() && row.active) {
-      req.user = row;
-      req.sessionToken = token;
-      if (!row.last_seen_at || now - new Date(row.last_seen_at) > 5 * 60e3) {
-        try { touch.run(now.toISOString(), token); } catch (e) {}
-      }
-      break;
+    const row = db.prepare('SELECT u.*, s.expires_at, s.last_seen_at FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token = ?').get(token);
+
+    if (!row) {
+      req.authFailure = 'unknown_session';
+      continue;
     }
-    req.authFailure = !row ? 'unknown_session' : !row.active ? 'deactivated' : 'expired';
+
+    if (!row.active) {
+      req.authFailure = 'deactivated';
+      continue;
+    }
+
+    if (row.expires_at <= now.toISOString()) {
+      req.authFailure = 'expired';
+      continue;
+    }
+
+    req.user = row;
+    req.sessionToken = token;
+    if (!row.last_seen_at || now - new Date(row.last_seen_at) > 5 * 60e3) {
+      try { touch.run(now.toISOString(), token); } catch (e) {}
+    }
+    break;
   }
   if (!req.user && !candidates.length) req.authFailure = 'no_credentials';
   next();

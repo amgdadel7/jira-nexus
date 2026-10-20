@@ -54,7 +54,8 @@ class IssueService {
     const done = resolved.statusCategory === 'done';
     const defaultResolution = done ? await this.catalog.defaultResolution() : null;
 
-    return this.db.tx(async () => {
+    let createdId;
+    await this.db.tx(async () => {
       const num = await this.projects.takeNextNumber(project.key);
       const key = `${project.key}-${num}`;
       const columns = {
@@ -68,6 +69,7 @@ class IssueService {
         columns.assignee_id = this.componentDefaultAssignee(resolved.componentRows[0], project);
       }
       const id = await this.issues.insert(columns);
+      createdId = id;
       if (resolved.labels?.length) await this.issues.setLabels(id, resolved.labels);
       if (resolved.componentIds?.length) await this.issues.setComponents(id, resolved.componentIds);
       if (body.customFields && this.customFields) await this.customFields.applyValues(actor, { id, project_key: project.key }, body.customFields, { recordHistory: false });
@@ -78,8 +80,8 @@ class IssueService {
         await this.notifications.notify({ issue: { id }, actorId: actor.id, type: 'assigned', message: `assigned ${key} to you`, only: [columns.assignee_id] });
       }
       await this.bus.publish('issue_created', { key, actorId: actor.id });
-      return this.issues.findById(id);
     });
+    return this.issues.findById(createdId);
   }
 
   componentDefaultAssignee(component, project) {

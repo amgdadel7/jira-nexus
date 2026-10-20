@@ -33,7 +33,9 @@ export function sendEvent(type, message, stack, culprit, extra = {}) {
         body: payload
       }).catch(() => {});
     }
-  } catch (_) {}
+  } catch (_err) {
+    /* ignore telemetry send errors */
+  }
 }
 
 export function captureException(error, extra = {}) {

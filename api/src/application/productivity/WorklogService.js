@@ -56,7 +56,7 @@ class WorklogService {
   async syncTotals(actor, record, remaining) {
     const spent = await this.repo.syncTimeSpent(record.id);
     if (spent !== (record.time_spent || 0)) {
-      await this.issues.addHistory({ issueId: record.id, authorId: actor.id, field: 'time_spent', from: formatDuration(record.time_spent || 0), to: formatDuration(spent) });
+      await this.issues.addHistory({ issueId: record.id, authorId: actor.id, field: 'time spent', from: formatDuration(record.time_spent || 0), to: formatDuration(spent) });
     }
     if (remaining !== undefined && remaining !== (record.remaining_estimate ?? null)) {
       const project = await this.projects.findByKey(record.project_key);

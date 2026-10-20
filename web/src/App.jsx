@@ -314,7 +314,7 @@ function Root() {
       const p = window.location.pathname
       if (p.startsWith('/jira') || p.startsWith('/browse')) {
         const returnUrl = p + window.location.search
-        try { sessionStorage.setItem('masar.returnUrl', returnUrl) } catch {}
+        try { sessionStorage.setItem('masar.returnUrl', returnUrl) } catch { /* ignore storage error */ }
         window.history.replaceState(null, '', `/login?returnUrl=${encodeURIComponent(returnUrl)}`)
       }
     }
@@ -332,7 +332,7 @@ function Root() {
         const p = window.location.pathname
         if (p.startsWith('/jira') || p.startsWith('/browse')) {
           const returnUrl = p + window.location.search
-          try { sessionStorage.setItem('masar.returnUrl', returnUrl) } catch {}
+          try { sessionStorage.setItem('masar.returnUrl', returnUrl) } catch { /* ignore storage error */ }
           window.history.replaceState(null, '', `/login?returnUrl=${encodeURIComponent(returnUrl)}`)
         }
       }
@@ -380,7 +380,7 @@ function Root() {
             const params = new URLSearchParams(window.location.search)
             target = params.get('returnUrl') || sessionStorage.getItem('masar.returnUrl')
             sessionStorage.removeItem('masar.returnUrl')
-          } catch {}
+          } catch { /* ignore storage error */ }
           const dest = target && target.startsWith('/jira') ? target : '/'
           window.history.replaceState(null, '', dest)
           setAuth({ state: 'in', user })

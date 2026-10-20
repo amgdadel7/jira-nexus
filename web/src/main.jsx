@@ -7,11 +7,13 @@ import App from './App.jsx'
 import './index.css'
 import { installTooltips } from './motion.js'
 
-const miratDsn = import.meta.env.VITE_MIRAT_DSN || 'https://mirat-monitor.onrender.com/api/events/S3reV9dc_WwNhtiNrQM7PRILQMZD_myf'
-mirat.init(miratDsn, {
-  environment: import.meta.env.MODE || 'production',
-  release: '1.0.0'
-})
+const miratDsn = import.meta.env.VITE_MIRAT_DSN
+if (miratDsn) {
+  mirat.init(miratDsn, {
+    environment: import.meta.env.MODE || 'production',
+    release: '1.0.0'
+  })
+}
 
 const sentryDsn = import.meta.env.VITE_SENTRY_DSN
 

@@ -37,8 +37,9 @@ export const authApi = {
       const timer = setTimeout(() => controller.abort(), 3500)
       const res = await fetch(resolveUrl('/api/auth/config'), { signal: controller.signal, cache: 'no-store' })
       clearTimeout(timer)
-      if (res.ok) return await res.json()
-    } catch {}
+    } catch (_e) {
+      /* fallback to default config */
+    }
     return {
       siteName: 'Masar',
       signup: 'open',
@@ -53,26 +54,13 @@ export const authApi = {
       plan: { key: 'free', name: 'Free' },
     }
   },
-  signupStart: (email) =>
-    req('POST', '/api/auth/signup/start', { email }).catch((err) => {
-      if (err.message && err.message.includes('already have an account')) throw err
-      return { ok: true, email, expiresInMinutes: 15, message: `We sent a 6-digit code to ${email}.`, devCode: '123456' }
-    }),
-  signupVerify: (email, code) =>
-    req('POST', '/api/auth/signup/verify', { email, code }).catch(() => {
-      return { ok: true, email, signupToken: 'su_' + btoa(email).replace(/=/g, '') }
-    }),
+  signupStart: (email) => req('POST', '/api/auth/signup/start', { email }),
+  signupVerify: (email, code) => req('POST', '/api/auth/signup/verify', { email, code }),
   signupComplete: async (signupToken, name, password, remember = true) => {
-    try {
-      const d = await req('POST', '/api/auth/signup/complete', { signupToken, name, password, remember })
-      session.set(d.token, remember)
-      const me = await req('GET', '/api/auth/me').catch(() => ({}))
-      return { ...d, user: me.user || d.user }
-    } catch {
-      const fallbackToken = 'token_' + Date.now()
-      session.set(fallbackToken, remember)
-      return { ok: true, token: fallbackToken, user: { id: 'u_new', name, email: 'user@example.com', role: 'member' } }
-    }
+    const d = await req('POST', '/api/auth/signup/complete', { signupToken, name, password, remember })
+    session.set(d.token, remember)
+    const me = await req('GET', '/api/auth/me').catch(() => ({}))
+    return { ...d, user: me.user || d.user }
   },
   acceptToken: async (token, remember = true) => {
     session.set(token, remember)

@@ -36,7 +36,15 @@ services:
       PORT: 3000
       NODE_ENV: production
       DATABASE_URL: postgresql://postgres:admin@postgres:5432/masar
-    ports: ["3000:8080"]
+      UPLOAD_DIR: /app/uploads
+    ports: ["3000:3000"]
+    volumes:
+      - uploads_data:/app/uploads
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     depends_on:
       postgres:
         condition: service_healthy
@@ -48,9 +56,10 @@ services:
     volumes: ["./web:/app"]
     ports: ["5173:5173"]
     environment:
-      VITE_API_URL: http://localhost:5000
+      VITE_API_URL: http://localhost:3000
     depends_on:
-      - backend-dotnet
+      - backend-node
 
 volumes:
   pgdata:
+  uploads_data:

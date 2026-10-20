@@ -6,6 +6,7 @@ const express = require('express');
 const { authenticate, requireAuth, requireAdmin } = require('./middleware/auth');
 const { broadcaster } = require('./middleware/broadcaster');
 const { errorHandler } = require('./middleware/errorHandler');
+const { requestLogger } = require('./middleware/requestLogger');
 
 /** Controllers that guard their own routes (public endpoints live here). */
 const PUBLIC_CONTROLLERS = ['auth', 'signup', 'billing'];
@@ -39,6 +40,7 @@ function createApp(container, { serveClient = true } = {}) {
   app.disable('x-powered-by');
   app.set('trust proxy', true);
   app.set('etag', false);
+  app.use(requestLogger({ isTest: config.isTest }));
   app.use((req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'same-origin');
@@ -51,11 +53,22 @@ function createApp(container, { serveClient = true } = {}) {
   api.use(authenticate({ authService: services.auth }));
   api.use(broadcaster({ live, access }));
 
-  api.get('/health', async (req, res, next) => {
+  api.get('/health', async (req, res) => {
     try {
       await container.db.value('SELECT 1');
-      res.json({ ok: true, database: container.db.adapter?.kind || 'postgres', time: new Date().toISOString() });
-    } catch (err) { next(err); }
+      res.status(200).json({ ok: true, status: 'healthy', database: container.db.adapter?.kind || 'postgres', time: new Date().toISOString() });
+    } catch (err) {
+      res.status(503).json({ ok: false, status: 'unhealthy', database: 'disconnected', error: err.message });
+    }
+  });
+
+  api.get(['/ready', '/readiness'], async (req, res) => {
+    try {
+      await container.db.value('SELECT 1');
+      res.status(200).json({ status: 'ready', database: 'connected' });
+    } catch (err) {
+      res.status(503).json({ status: 'not_ready', database: 'disconnected', error: err.message });
+    }
   });
   api.get('/events', guards.requireAuth, (req, res) => live.connect(req, res, req.user));
   // public: <img> tags can't send bearer tokens; file names are unguessable

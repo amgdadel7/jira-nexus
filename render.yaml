@@ -7,13 +7,16 @@ services:
     dockerContext: ./api
     plan: free
     region: frankfurt
+    healthCheckPath: /api/health
     envVars:
       - key: PORT
         value: 8080
       - key: NODE_ENV
         value: production
+      - key: SESSION_SECRET
+        sync: false
       - key: MIRAT_DSN
-        value: https://mirat-monitor.onrender.com/api/events/RgL_RlWnFwK3hv8s71BZu_89R2IOUpIO
+        sync: false
 
   # 2. React Web Frontend (Vite)
   - type: web
@@ -32,7 +35,7 @@ services:
       - key: VITE_API_URL
         fromService:
           type: web
-          name: masar-dotnet-api
+          name: masar-node-api
           property: host
 
   # 3. .NET 8 Web API Service (Clean Architecture)
@@ -48,6 +51,6 @@ services:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
       - key: ConnectionStrings__DefaultConnection
-        value: "Host=aws-0-ap-southeast-2.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.fxyotyjqzddlcmqxemkz;Password=E8homLoNlT3Qthn6;SSL Mode=Require;Trust Server Certificate=true"
+        sync: false
       - key: MIRAT_DSN
-        value: https://mirat-monitor.onrender.com/api/events/0XJUEMTBGD47buhgkf7WUBnvGWvXGFDt
+        sync: false

@@ -46,7 +46,12 @@ function loadConfig(env = process.env) {
     }),
     demoPassword: env.DEMO_PASSWORD || 'password',
     webhookRetryDelays: nodeEnv === 'test' ? [50, 100] : [2000, 8000],
-    clientDist: path.join(SERVER_ROOT, '..', 'client', 'dist'),
+    clientDist: (() => {
+      const fs = require('fs');
+      const webDist = path.join(SERVER_ROOT, '..', 'web', 'dist');
+      const clientDist = path.join(SERVER_ROOT, '..', 'client', 'dist');
+      return fs.existsSync(webDist) ? webDist : clientDist;
+    })(),
   });
 }
 

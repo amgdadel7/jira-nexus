@@ -22,7 +22,7 @@ public class MiratClient : IMiratClient
 
         _dsn = configuration["Mirat:Dsn"]
                ?? Environment.GetEnvironmentVariable("MIRAT_DSN")
-               ?? "https://mirat-monitor.onrender.com/api/events/0XJUEMTBGD47buhgkf7WUBnvGWvXGFDt";
+               ?? string.Empty;
 
         _environment = configuration["Mirat:Environment"]
                        ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")

@@ -1,60 +1,69 @@
-# Nexus — enterprise project management
+# Nexus — Enterprise Project Management
 
-Jira-like work management for organizations that run Scrum and Kanban.
+Jira-like enterprise work management platform supporting Scrum, Kanban, and custom workflows.
 
-| Path | What it is | Runnable here |
-| --- | --- | --- |
-| `web/` | React 19 + TypeScript + MUI dashboard (EN/AR, RTL) | **Yes — live preview** |
-| `api/` | Node Clean Architecture API (Express, SQLite, JWT, OTP, OAuth) | **Yes — `:8080`** |
-| `backend/` | ASP.NET Core 8 API (Clean Architecture, CQRS, JWT, SignalR) | Needs .NET 8 |
-| `flutter_app/` | Flutter client (Riverpod, GoRouter, Dio) | Needs Flutter SDK |
-| `database/` | PostgreSQL / Supabase schema + seed | Apply in Postgres |
-| `docker-compose.yml` | API + Postgres + Redis + web | Needs Docker |
+## System Architecture
 
-The live UI talks **only** to the Node API. There is no frontend mock data.
+| Component | Path | Technology & Pattern | Status |
+| :--- | :--- | :--- | :--- |
+| **Web Frontend** | `web/` | React 18, Vite, TanStack Query, Tailwind/Vanilla CSS | **Primary Client** |
+| **Unified Backend** | `api/` (`src/main.js`) | Node.js, Express, Clean Architecture, PostgreSQL / PGlite | **Approved Runtime** |
+| **Legacy Monolith** | `api/` (`index.js` / `app.js`) | Express, SQLite (`better-sqlite3`) | **Legacy** (`npm run start:legacy`) |
+| **.NET Backend** | `backend/` | ASP.NET Core 8, MediatR, EF Core | Secondary / Reference |
+| **Mobile App** | `flutter_app/` | Flutter, Riverpod, Dio | Mobile Client |
 
-## Sign in
+---
 
-1. Open the Nexus web preview
-2. Email `zoe.m@example.net` / password `demo1234`
-3. Or request an email OTP (demo shows the code because mail is in-memory)
-4. Google and Outlook need `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` and `MICROSOFT_CLIENT_ID` / `MICROSOFT_CLIENT_SECRET`
+## Quick Start (Local Development)
 
-Invite people from **Team**. OTP and invites appear in **Mailbox**.
-
-## Run locally
-
+### 1. Unified Backend (Node.js + PostgreSQL)
 ```bash
-cd api && npm install && npm run dev   # http://127.0.0.1:8080
-cd web && npm install && npx vite      # http://localhost:5173  (proxies /api)
+cd api
+npm install
+npm run dev        # Starts unified Clean Architecture API on http://127.0.0.1:3000
+```
+- By default, uses embedded in-memory PostgreSQL (`PGlite`), requiring zero database installation.
+- To connect to an external PostgreSQL server, set `DATABASE_URL=postgres://user:password@localhost:5432/masar`.
+
+### 2. Web Frontend (Vite)
+```bash
+cd web
+npm install
+npm run dev        # Starts Vite dev server on http://localhost:5173 (proxies /api to 3000)
 ```
 
-SQLite file: `api/data/nexus.db`. Seed runs only when the database is empty. `ensureDemoFixes` keeps the canonical admin email.
+### 3. Verification & Testing
+```bash
+# Run all unit, security, and smoke tests
+cd api && npm test
 
-## Product surface
+# Run smoke test verifying proxy and CRUD
+cd api && npm run test:smoke
 
-- Analytics dashboard (KPI strip, burndown, velocity from live sprints)
-- Projects (create / open / archive)
-- Kanban board (6 columns, filters, drag or keyboard/menu move)
-- Backlog + sprint planning
-- Issues list
-- Sprint start / complete / create
-- Issue drawer (edit, comments, delete)
-- Reports (burndown, velocity, cycle time, workload)
-- Team directory + email invite
-- Calendar (due dates + sprint bounds)
-- Mailbox, settings, i18n (EN/AR), light/dark
+# Verify API health
+cd api && npm run health
 
-## API
+# Scan for exposed credentials (values masked)
+cd api && npm run check:secrets
+```
 
-- `POST /api/auth/login` `POST /api/auth/otp/request` `POST /api/auth/otp/verify`
-- `GET  /api/auth/google` `GET /api/auth/microsoft`
-- `GET  /api/me` `/users` `/projects` `/issues` `/sprints` `/comments`
-- `POST /api/projects` `PATCH /api/projects/:id`
-- `POST /api/issues` `PATCH /api/issues/:id`
-- `POST /api/invites` `GET /api/mailbox`
-- `GET  /api/reports/velocity` `GET /api/reports/cycle` `GET /api/search`
+---
 
-## Database / Flutter / ASP.NET
+## Demo Accounts (Seeded)
 
-Those trees stay in the repo as source. This sandbox cannot run .NET, Flutter, or Docker.
+| Role | Email | Password |
+| :--- | :--- | :--- |
+| **Site Administrator** | `ahmed@ahdfinancial.com` | `password` |
+| **Project Lead** | `layla@ahdfinancial.com` | `password` |
+| **Team Member** | `omar@ahdfinancial.com` | `password` |
+
+---
+
+## Docker Deployment
+```bash
+docker compose up -d
+```
+Runs:
+- `backend-node` on port `3000` (PostgreSQL)
+- `postgres` on port `5432`
+- `web` on port `5173`

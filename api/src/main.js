@@ -23,14 +23,22 @@ async function bootstrap({ env = process.env, seed = env.SEED_ON_BOOT === 'false
     const s = app.listen(config.port, config.host, () => resolve(s));
   });
   console.log(`Masar running on http://${config.host}:${config.port} (${db.adapter?.kind || 'postgres'})`);
-  const shutdown = async () => {
-    container.live.closeAll();
-    server.close();
-    await db.close();
-    process.exit(0);
+  const shutdown = async (signal) => {
+    console.log(`Received ${signal}. Initiating graceful shutdown...`);
+    try {
+      container.live.closeAll();
+      server.closeAllConnections?.();
+      await new Promise((resolve) => server.close(resolve));
+      await db.close();
+      console.log('Graceful shutdown completed successfully.');
+      process.exit(0);
+    } catch (err) {
+      console.error('Error during shutdown:', err);
+      process.exit(1);
+    }
   };
-  process.once('SIGTERM', shutdown);
-  process.once('SIGINT', shutdown);
+  process.once('SIGTERM', () => shutdown('SIGTERM'));
+  process.once('SIGINT', () => shutdown('SIGINT'));
   return { app, container, server };
 }
 

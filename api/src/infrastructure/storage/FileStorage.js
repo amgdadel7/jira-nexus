@@ -12,8 +12,10 @@ class FileStorage {
   }
 
   /** Saves a buffer under a random name, keeping a short extension. Returns the stored name. */
-  save(buffer, originalName = '', subdir = '') {
-    const name = `${crypto.randomBytes(12).toString('hex')}${path.extname(originalName).slice(0, 10)}`;
+  save(buffer, originalName = '', subdir = '', { prefix = '' } = {}) {
+    const ext = path.extname(originalName).slice(0, 10);
+    const id = crypto.randomBytes(8).toString('hex');
+    const name = prefix ? `${prefix}-${id}${ext}` : `${crypto.randomBytes(12).toString('hex')}${ext}`;
     const stored = subdir ? `${subdir}/${name}` : name;
     fs.mkdirSync(path.dirname(this.path(stored)), { recursive: true });
     fs.writeFileSync(this.path(stored), buffer);

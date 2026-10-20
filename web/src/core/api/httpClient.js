@@ -10,7 +10,7 @@ let queryTransport = (() => {
   }
 })()
 
-export const useQueryTransport = () => {
+export const enableQueryTransport = () => {
   queryTransport = true
   try {
     sessionStorage.setItem(TRANSPORT_KEY, 'query')
@@ -18,6 +18,7 @@ export const useQueryTransport = () => {
     /* blocked */
   }
 }
+export const useQueryTransport = enableQueryTransport
 
 export const withToken = (url, token) =>
   `${url}${url.includes('?') ? '&' : '?'}access_token=${encodeURIComponent(token)}`
@@ -64,7 +65,7 @@ export async function req(method, url, body, opts = {}) {
     if (data.reason === 'no_credentials' && !queryTransport) {
       const retry = await send(method, url, body, opts, token, true)
       if (retry.res.status !== 401) {
-        useQueryTransport()
+        enableQueryTransport()
         res = retry.res
         data = retry.data
       } else {
@@ -80,7 +81,7 @@ export async function req(method, url, body, opts = {}) {
           const check = await send('GET', '/api/auth/me', null, {}, token, true).catch(() => null)
           gone = !check || check.res.status === 401
           if (!gone) {
-            useQueryTransport()
+            enableQueryTransport()
             ;({ res, data } = await send(method, url, body, opts, token, true))
           }
         }

@@ -55,7 +55,7 @@ class ProfileService {
     if (buffer.length > MAX_AVATAR) throw bad('Profile photos must be 1 MB or smaller.');
     const kind = IMAGE_SIGNATURES.find((s) => s.test(buffer));
     if (!kind) throw bad('Upload a PNG, JPG, GIF or WebP image.');
-    const stored = this.storage.save(buffer, `${actor.id}.${kind.ext}`, 'avatars');
+    const stored = this.storage.save(buffer, `avatar.${kind.ext}`, 'avatars', { prefix: actor.id });
     const file = stored.slice('avatars/'.length);
     const previous = actor.user?.avatar;
     const user = await this.users.update(actor.id, { avatar: file });

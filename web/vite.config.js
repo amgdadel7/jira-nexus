@@ -1,17 +1,52 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const rootDir = path.dirname(fileURLToPath(import.meta.url))
+
+// Relative /api requests are proxied to the unified backend service
+const proxyTarget = process.env.VITE_API_URL || 'http://127.0.0.1:3000'
+
+const proxy = {
+  '/api': {
+    target: proxyTarget,
+    changeOrigin: true,
+    secure: false,
+    ws: true,
+  },
+}
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(rootDir, 'src'),
+    },
+  },
   server: {
     host: '0.0.0.0',
+    port: 5173,
+    strictPort: true,
     allowedHosts: true,
-    proxy: {
-      '/api': {
-        target: process.env.VITE_API_URL || 'https://jira-nexus.onrender.com',
-        changeOrigin: true,
-        secure: true,
-      },
-    },
+    cors: true,
+    proxy,
+    hmr: process.env.VITE_HMR_WSS === 'true'
+      ? {
+          overlay: false,
+          protocol: 'wss',
+          clientPort: 443,
+        }
+      : {
+          overlay: false,
+        },
+  },
+  preview: {
+    host: '0.0.0.0',
+    port: 5173,
+    strictPort: true,
+    allowedHosts: true,
+    cors: true,
+    proxy,
   },
 })

@@ -144,7 +144,8 @@ r.get('/permissions/global', L.wrap((req, res) => {
 }));
 r.put('/permissions/global', A.requireAdmin, L.wrap((req, res) => {
   B.assertFeature('permissions');
-  const input = req.body?.scheme || {};
+  const input = req.body?.scheme;
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw L.bad('scheme is required: { PERMISSION: [roles] }.');
   const before = PM.globalScheme();
   const next = {};
   for (const g of PM.GLOBAL_PERMISSIONS) {
