@@ -25,12 +25,42 @@ function post(event) {
   } catch (_) { /* Reporting must not replace an application error. */ }
 }
 
+function extractCulprit(err) {
+  if (!err || !err.stack) return '';
+  const lines = String(err.stack).split('\n');
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line.startsWith('at ')) continue;
+    const content = line.slice(3).trim();
+    if (content.includes('mirat-node')) continue;
+    const match = content.match(/^(?:async\s+)?(.+?)\s+\((.+)\)$/);
+    if (match) {
+      const fn = match[1];
+      const location = match[2];
+      const fileMatch = location.match(/([^\\/]+:\d+(?::\d+)?)$/);
+      const shortLoc = fileMatch ? fileMatch[1] : location;
+      return fn === 'Object.<anonymous>' ? shortLoc : `${fn} (${shortLoc})`;
+    }
+    const fileMatch = content.match(/([^\\/]+:\d+(?::\d+)?)$/);
+    if (fileMatch) return fileMatch[1];
+    return content.slice(0, 150);
+  }
+  return '';
+}
+
 function captureException(error, extra = {}) {
   const err = error instanceof Error ? error : new Error(String(error));
+  const culprit = extra.culprit || extractCulprit(err);
   post({
-    type: err.name || 'Error', message: String(err.message || err).slice(0, 1000),
-    stacktrace: String(err.stack || '').slice(0, 12000), culprit: '', level: 'error',
-    environment, release, timestamp: new Date().toISOString(), extra
+    type: err.name || 'Error',
+    message: String(err.message || err).slice(0, 1000),
+    stacktrace: String(err.stack || '').slice(0, 12000),
+    culprit,
+    level: 'error',
+    environment,
+    release,
+    timestamp: new Date().toISOString(),
+    extra
   });
 }
 
