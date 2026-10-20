@@ -310,10 +310,13 @@ function Root() {
   }, [])
 
   useEffect(() => {
-    if (auth.state === 'out' && typeof window !== 'undefined' && window.location.pathname.startsWith('/jira')) {
-      const returnUrl = window.location.pathname + window.location.search
-      try { sessionStorage.setItem('masar.returnUrl', returnUrl) } catch {}
-      window.history.replaceState(null, '', `/login?returnUrl=${encodeURIComponent(returnUrl)}`)
+    if (auth.state === 'out' && typeof window !== 'undefined') {
+      const p = window.location.pathname
+      if (p.startsWith('/jira') || p.startsWith('/browse')) {
+        const returnUrl = p + window.location.search
+        try { sessionStorage.setItem('masar.returnUrl', returnUrl) } catch {}
+        window.history.replaceState(null, '', `/login?returnUrl=${encodeURIComponent(returnUrl)}`)
+      }
     }
   }, [auth.state])
 
@@ -325,10 +328,13 @@ function Root() {
     }
     const onLogout = (e) => {
       setAuth({ state: 'out', user: null })
-      if (typeof window !== 'undefined' && window.location.pathname.startsWith('/jira')) {
-        const returnUrl = window.location.pathname + window.location.search
-        try { sessionStorage.setItem('masar.returnUrl', returnUrl) } catch {}
-        window.history.replaceState(null, '', `/login?returnUrl=${encodeURIComponent(returnUrl)}`)
+      if (typeof window !== 'undefined') {
+        const p = window.location.pathname
+        if (p.startsWith('/jira') || p.startsWith('/browse')) {
+          const returnUrl = p + window.location.search
+          try { sessionStorage.setItem('masar.returnUrl', returnUrl) } catch {}
+          window.history.replaceState(null, '', `/login?returnUrl=${encodeURIComponent(returnUrl)}`)
+        }
       }
       if (e.detail?.expired) {
         const r = e.detail.reason
@@ -345,8 +351,11 @@ function Root() {
     await api.logout().catch(() => {})
     setNotice({ text: 'You have been logged out.' })
     setAuth({ state: 'out', user: null })
-    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/jira')) {
-      window.history.replaceState(null, '', '/login')
+    if (typeof window !== 'undefined') {
+      const p = window.location.pathname
+      if (p.startsWith('/jira') || p.startsWith('/browse')) {
+        window.history.replaceState(null, '', '/login')
+      }
     }
   }, [])
   const leaveReset = useCallback((text) => {

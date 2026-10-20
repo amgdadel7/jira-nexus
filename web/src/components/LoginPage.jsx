@@ -46,12 +46,26 @@ export default function LoginPage({ onLogin, notice, resetToken, onLeaveReset, i
   const [mode, setMode] = useState(startMode) // login | signup | verify | finish | forgot | reset
   const [token, setToken] = useState(resetToken || '')
   const [email, setEmail] = useState('')
-  const [config, setConfig] = useState(null)
+  const [config, setConfig] = useState(() => ({
+    siteName: 'Masar',
+    signup: 'open',
+    providers: {
+      google: { name: 'Google', enabled: true, configured: true },
+      microsoft: { name: 'Microsoft', enabled: true, configured: true },
+      apple: { name: 'Apple', enabled: true, configured: true },
+      slack: { name: 'Slack', enabled: true, configured: true },
+    },
+    plan: { key: 'free', name: 'Free' },
+  }))
   const [signup, setSignup] = useState(null) // { email, devCode, signupToken }
   const [flash, setFlash] = useState(null)
   const [legal, setLegal] = useState(null)
 
-  useEffect(() => { api.authConfig().then(setConfig).catch(() => setConfig({ providers: {}, signup: 'open' })) }, [])
+  useEffect(() => {
+    let active = true
+    api.authConfig().then((cfg) => { if (active && cfg) setConfig(cfg) }).catch(() => {})
+    return () => { active = false }
+  }, [])
   useEffect(() => { if (resetToken != null) { setMode('reset'); setToken(resetToken) } }, [resetToken])
   // keep the address bar in sync (/login, /signup) without leaving the reset link
   const go = useCallback((m, f = null) => {
@@ -507,14 +521,21 @@ function ForgotForm({ email, setEmail, onBack, onOpenReset }) {
 }
 
 function ResetForm({ token, onLogin, onBack, onForgot }) {
-  const [info, setInfo] = useState(null) // { email } | { error }
+  const [info, setInfo] = useState(() => (!token ? { error: 'This reset link is invalid or has expired. Request a new one.' } : null))
   const [pw, setPw] = useState('')
   const [pw2, setPw2] = useState('')
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
   useEffect(() => {
-    if (!token) { setInfo({ error: 'This reset link is invalid or has expired. Request a new one.' }); return }
-    api.resetInfo(token).then(setInfo).catch((e) => setInfo({ error: e.message }))
+    if (!token) {
+      setInfo({ error: 'This reset link is invalid or has expired. Request a new one.' })
+      return
+    }
+    let active = true
+    api.resetInfo(token)
+      .then((res) => { if (active) setInfo(res) })
+      .catch((e) => { if (active) setInfo({ error: e.message || 'This reset link is invalid or has expired.' }) })
+    return () => { active = false }
   }, [token])
   const strength = strengthOf(pw)
   const submit = async (e) => {

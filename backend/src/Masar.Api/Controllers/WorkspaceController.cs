@@ -26,9 +26,13 @@ public class WorkspaceController : ControllerBase
     }
 
     [HttpGet("meta")]
-    public async Task<ActionResult<WorkspaceMetaResponse>> GetMeta([FromQuery] string? projectKey, CancellationToken cancellationToken)
+    public async Task<ActionResult<WorkspaceMetaResponse>> GetMeta(
+        [FromQuery] string? project,
+        [FromQuery] string? projectKey,
+        CancellationToken cancellationToken)
     {
-        var meta = await _mediator.Send(new GetWorkspaceMetaQuery(projectKey), cancellationToken);
+        var key = !string.IsNullOrEmpty(project) ? project : projectKey;
+        var meta = await _mediator.Send(new GetWorkspaceMetaQuery(key), cancellationToken);
         return Ok(meta);
     }
 

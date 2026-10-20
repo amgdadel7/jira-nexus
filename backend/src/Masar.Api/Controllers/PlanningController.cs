@@ -17,23 +17,36 @@ public class PlanningController : ControllerBase
     }
 
     [HttpGet("sprints")]
-    public async Task<ActionResult<List<SprintDto>>> GetSprints([FromQuery] string? projectKey, [FromQuery] string? state, CancellationToken cancellationToken)
+    public async Task<ActionResult<List<SprintDto>>> GetSprints(
+        [FromQuery] string? project,
+        [FromQuery] string? projectKey,
+        [FromQuery] string? state,
+        CancellationToken cancellationToken)
     {
-        var sprints = await _mediator.Send(new GetSprintsQuery(projectKey, state), cancellationToken);
+        var key = !string.IsNullOrEmpty(project) ? project : projectKey;
+        var sprints = await _mediator.Send(new GetSprintsQuery(key, state), cancellationToken);
         return Ok(sprints);
     }
 
     [HttpGet("versions")]
-    public async Task<ActionResult<List<VersionDto>>> GetVersions([FromQuery] string? projectKey, CancellationToken cancellationToken)
+    public async Task<ActionResult<List<VersionDto>>> GetVersions(
+        [FromQuery] string? project,
+        [FromQuery] string? projectKey,
+        CancellationToken cancellationToken)
     {
-        var versions = await _mediator.Send(new GetVersionsQuery(projectKey), cancellationToken);
+        var key = !string.IsNullOrEmpty(project) ? project : projectKey;
+        var versions = await _mediator.Send(new GetVersionsQuery(key), cancellationToken);
         return Ok(versions);
     }
 
     [HttpGet("components")]
-    public async Task<ActionResult<List<ComponentDto>>> GetComponents([FromQuery] string? projectKey, CancellationToken cancellationToken)
+    public async Task<ActionResult<List<ComponentDto>>> GetComponents(
+        [FromQuery] string? project,
+        [FromQuery] string? projectKey,
+        CancellationToken cancellationToken)
     {
-        var components = await _mediator.Send(new GetComponentsQuery(projectKey), cancellationToken);
+        var key = !string.IsNullOrEmpty(project) ? project : projectKey;
+        var components = await _mediator.Send(new GetComponentsQuery(key), cancellationToken);
         return Ok(components);
     }
 

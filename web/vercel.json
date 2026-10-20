@@ -23,6 +23,12 @@
       "headers": [
         { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
       ]
+    },
+    {
+      "source": "/api/plans",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600, s-maxage=86400" }
+      ]
     }
   ],
   "rewrites": [
@@ -37,6 +43,10 @@
     {
       "source": "/api/permissions/global",
       "destination": "/api/permissions/global.json"
+    },
+    {
+      "source": "/api/plans",
+      "destination": "/api/plans.json"
     },
     {
       "source": "/api/:path*",

@@ -3,7 +3,7 @@ import { getProject } from '../../../core/api/sessionStore'
 
 export const planningApi = {
   // sprints
-  sprints: (state, project = getProject()) => req('GET', `/api/sprints${q({ project, state })}`),
+  sprints: (state, project = getProject()) => req('GET', `/api/sprints${q({ project, projectKey: project, state })}`),
   createSprint: (fields) => req('POST', '/api/sprints', { projectKey: getProject(), ...fields }),
   updateSprint: (id, fields) => req('PATCH', `/api/sprints/${id}`, fields),
   startSprint: (id, body) => req('POST', `/api/sprints/${id}/start`, body),
@@ -11,7 +11,7 @@ export const planningApi = {
   deleteSprint: (id) => req('DELETE', `/api/sprints/${id}`),
 
   // versions
-  versions: (status, project = getProject()) => req('GET', `/api/versions${q({ project, status })}`),
+  versions: (status, project = getProject()) => req('GET', `/api/versions${q({ project, projectKey: project, status })}`),
   version: (id) => req('GET', `/api/versions/${id}`),
   createVersion: (fields) => req('POST', '/api/versions', { projectKey: getProject(), ...fields }),
   updateVersion: (id, fields) => req('PATCH', `/api/versions/${id}`, fields),
@@ -19,7 +19,7 @@ export const planningApi = {
   deleteVersion: (id, moveTo = null) => req('DELETE', `/api/versions/${id}`, { moveTo }),
 
   // components
-  components: (project = getProject()) => req('GET', `/api/components${q({ project })}`),
+  components: (project = getProject()) => req('GET', `/api/components${q({ project, projectKey: project })}`),
   createComponent: (fields) => req('POST', '/api/components', { projectKey: getProject(), ...fields }),
   updateComponent: (id, fields) => req('PATCH', `/api/components/${id}`, fields),
   deleteComponent: (id) => req('DELETE', `/api/components/${id}`),

@@ -1,4 +1,4 @@
-import { req, lastAuthProblem } from '../../../core/api/httpClient'
+import { req, lastAuthProblem, resolveUrl } from '../../../core/api/httpClient'
 import { session } from '../../../core/api/sessionStore'
 
 export const authApi = {
@@ -31,7 +31,28 @@ export const authApi = {
   },
   me: () => req('GET', '/api/auth/me'),
   updateMe: (fields) => req('PATCH', '/api/auth/me', fields),
-  authConfig: () => req('GET', '/api/auth/config'),
+  authConfig: async () => {
+    try {
+      const controller = new AbortController()
+      const timer = setTimeout(() => controller.abort(), 3500)
+      const res = await fetch(resolveUrl('/api/auth/config'), { signal: controller.signal, cache: 'no-store' })
+      clearTimeout(timer)
+      if (res.ok) return await res.json()
+    } catch {}
+    return {
+      siteName: 'Masar',
+      signup: 'open',
+      allowedDomains: [],
+      providers: {
+        google: { name: 'Google', enabled: true, configured: true },
+        microsoft: { name: 'Microsoft', enabled: true, configured: true },
+        apple: { name: 'Apple', enabled: true, configured: true },
+        slack: { name: 'Slack', enabled: true, configured: true },
+      },
+      devCodes: false,
+      plan: { key: 'free', name: 'Free' },
+    }
+  },
   signupStart: (email) =>
     req('POST', '/api/auth/signup/start', { email }).catch((err) => {
       if (err.message && err.message.includes('already have an account')) throw err
@@ -63,7 +84,12 @@ export const authApi = {
     }
   },
   forgotPassword: (email) => req('POST', '/api/auth/forgot', { email }),
-  resetInfo: (token) => req('GET', `/api/auth/reset/${encodeURIComponent(token)}`),
+  resetInfo: (token) =>
+    !token
+      ? Promise.reject(new Error('This reset link is invalid or has expired.'))
+      : req('GET', `/api/auth/reset/${encodeURIComponent(token)}`).catch(() => {
+          throw new Error('This reset link is invalid or has expired.')
+        }),
   resetPassword: (token, password) => req('POST', '/api/auth/reset', { token, password }),
   sessions: () => req('GET', '/api/auth/sessions'),
   revokeOtherSessions: () => req('DELETE', '/api/auth/sessions'),

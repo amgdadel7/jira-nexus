@@ -46,31 +46,36 @@ export default function TeamsPage() {
   const [q, setQ] = useState('')
   const load = useCallback(() => api.teams().then(setTeams).catch(() => setTeams([])), [])
   useEffect(() => { load() }, [load, refreshKey])
-  if (!teams) return <div className="center-pad"><div className="spinner" /></div>
   const canCreate = canGlobal('MANAGE_TEAMS')
-  const shown = teams.filter((t) => !q || `${t.name} ${t.description}`.toLowerCase().includes(q.toLowerCase()))
+  const shown = teams ? teams.filter((t) => !q || `${t.name} ${t.description}`.toLowerCase().includes(q.toLowerCase())) : []
   return (
     <div className="page-pad">
       <div className="page-head">
         <div><h1>Teams</h1><p className="muted">Teams group people who work together. Assign work items to a team and filter with <code>team = "Name"</code> in JQL.</p></div>
         {canCreate && <button className="btn primary" onClick={() => setEditing({})}><Icon name="plus" size={16} />Create team</button>}
       </div>
-      <div className="toolbar"><label className="list-search"><Icon name="search" size={16} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search teams" aria-label="Search teams" /></label></div>
-      {shown.length === 0 ? <div className="empty-state"><Icon name="team" size={32} /><p>No teams found.</p></div> : (
-        <div className="team-grid">
-          {shown.map((t) => (
-            <div key={t.id} className="team-card" data-team={t.name}>
-              <div className="team-card-head">
-                <span className="team-dot" style={{ background: t.color }}><Icon name="team" size={18} /></span>
-                <div className="grow"><b>{t.name}</b><div className="muted small">{t.members.length} member{t.members.length === 1 ? '' : 's'}</div></div>
-                {t.canEdit && <><button className="icon-btn" aria-label={`Edit ${t.name}`} onClick={() => setEditing(t)}><Icon name="edit" size={16} /></button><button className="icon-btn" aria-label={`Delete ${t.name}`} onClick={() => setDeleting(t)}><Icon name="trash" size={16} /></button></>}
-              </div>
-              <p className="muted small team-desc">{t.description || 'No description.'}</p>
-              <div className="avatar-stack">{t.members.slice(0, 8).map((id) => <Avatar key={id} user={userById[id]} size={28} />)}{t.members.length > 8 && <span className="more-count">+{t.members.length - 8}</span>}</div>
-              <button className="link small" onClick={() => openList(`team = "${t.name}" ORDER BY updated DESC`)}>{t.openCount} open of {t.issueCount} work items →</button>
+      {!teams ? (
+        <div className="center-pad"><div className="spinner" /></div>
+      ) : (
+        <>
+          <div className="toolbar"><label className="list-search"><Icon name="search" size={16} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search teams" aria-label="Search teams" /></label></div>
+          {shown.length === 0 ? <div className="empty-state"><Icon name="team" size={32} /><p>No teams found.</p></div> : (
+            <div className="team-grid">
+              {shown.map((t) => (
+                <div key={t.id} className="team-card" data-team={t.name}>
+                  <div className="team-card-head">
+                    <span className="team-dot" style={{ background: t.color }}><Icon name="team" size={18} /></span>
+                    <div className="grow"><b>{t.name}</b><div className="muted small">{t.members.length} member{t.members.length === 1 ? '' : 's'}</div></div>
+                    {t.canEdit && <><button className="icon-btn" aria-label={`Edit ${t.name}`} onClick={() => setEditing(t)}><Icon name="edit" size={16} /></button><button className="icon-btn" aria-label={`Delete ${t.name}`} onClick={() => setDeleting(t)}><Icon name="trash" size={16} /></button></>}
+                  </div>
+                  <p className="muted small team-desc">{t.description || 'No description.'}</p>
+                  <div className="avatar-stack">{t.members.slice(0, 8).map((id) => <Avatar key={id} user={userById[id]} size={28} />)}{t.members.length > 8 && <span className="more-count">+{t.members.length - 8}</span>}</div>
+                  <button className="link small" onClick={() => openList(`team = "${t.name}" ORDER BY updated DESC`)}>{t.openCount} open of {t.issueCount} work items →</button>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
       {editing && <TeamModal team={editing} onClose={() => setEditing(null)} onSaved={(t) => { toast(editing.id ? 'Team updated' : `Team ${t.name} created`); setEditing(null); load(); refreshMeta() }} />}
       {deleting && <Confirm title={`Delete ${deleting.name}?`} body="Work items assigned to this team will no longer have a team. People aren’t affected." onClose={() => setDeleting(null)}

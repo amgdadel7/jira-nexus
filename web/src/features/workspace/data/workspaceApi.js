@@ -1,11 +1,58 @@
 import { req, q } from '../../../core/api/httpClient'
 import { getProject } from '../../../core/api/sessionStore'
 
+const FALLBACK_PLANS = {
+  currency: 'USD',
+  trialDays: 14,
+  annualDiscount: 'Pay for 10 months, get 12',
+  plans: [
+    {
+      key: 'free',
+      name: 'Free',
+      tagline: 'For small teams getting started',
+      price: { monthly: 0, annual: 0 },
+      maxUsers: 10,
+      storageBytes: 2147483648,
+      trashDays: 7,
+      features: [],
+      highlights: ['Up to 10 users', '2 GB storage', 'Unlimited projects & boards', 'Backlog, sprints, timeline & reports', '100 automation rule runs / month', 'Community support'],
+    },
+    {
+      key: 'standard',
+      name: 'Standard',
+      tagline: 'For growing teams that need control',
+      price: { monthly: 753, annual: 7530 },
+      maxUsers: 100,
+      storageBytes: 268435456000,
+      trashDays: 30,
+      features: ['permissions'],
+      highlights: ['Up to 100 users', '250 GB storage', 'Project roles & permission schemes', 'Limited & private projects', 'Global permissions', '1,700 automation rule runs / month', '30-day recycle bin'],
+    },
+    {
+      key: 'premium',
+      name: 'Premium',
+      tagline: 'For organisations scaling securely',
+      price: { monthly: 1353, annual: 13530 },
+      maxUsers: null,
+      storageBytes: null,
+      trashDays: 90,
+      features: ['permissions', 'audit_log'],
+      highlights: ['Unlimited users', 'Unlimited storage', 'Everything in Standard', 'Unlimited automation', 'Audit log', '90-day recycle bin', '24/7 premium support'],
+    },
+  ],
+}
+
 export const workspaceApi = {
-  meta: (project = getProject()) => req('GET', `/api/meta${q({ project })}`),
+  meta: (project = getProject()) => req('GET', `/api/meta${q({ project, projectKey: project })}`),
   quicksearch: (qStr) => req('GET', `/api/quicksearch${q({ q: qStr })}`),
   preferences: () => req('GET', '/api/auth/me/preferences'),
   savePreferences: (fields) => req('PATCH', '/api/auth/me/preferences', fields),
-  plans: () => req('GET', '/api/plans'),
+  plans: async () => {
+    try {
+      return await req('GET', '/api/plans')
+    } catch {
+      return FALLBACK_PLANS
+    }
+  },
   billing: () => req('GET', '/api/billing'),
 }
