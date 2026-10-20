@@ -5,6 +5,15 @@ const { bad, forbidden, notFound, AppError } = require('../../shared/errors');
 const { isEmail, isHexColor } = require('../../shared/validation');
 const { RateLimiter } = require('../../shared/rateLimiter');
 
+const {
+  generateSecret,
+  verifyTOTP,
+  generateOtpAuthUri,
+  generateBackupCodes,
+  encryptSecret,
+  decryptSecret,
+} = require('../../shared/totp');
+
 const SESSION_DAYS = 14; // "Remember me"
 const SHORT_SESSION_HOURS = 12; // browser session only
 const RESET_MINUTES = 30;
@@ -15,7 +24,8 @@ const MAX_TOKENS = 20;
 
 /**
  * Authentication use cases: password login, sessions, personal access tokens,
- * password reset and the signed-in user's own profile.
+ * password reset, multi-factor authentication (TOTP & backup codes),
+ * and the signed-in user's own profile.
  */
 class AuthService {
   constructor({ db, authRepo, userRepo, config, logger = console }) {
@@ -53,10 +63,17 @@ class AuthService {
   }
 
   /* ---------- sessions ---------- */
-  async createSession(userId, { remember = true, userAgent = '' } = {}) {
+  async createSession(userId, { remember = true, userAgent = '', ipAddress = '' } = {}) {
     const token = randomHex(32);
     const expires = new Date(Date.now() + (remember ? SESSION_DAYS * 864e5 : SHORT_SESSION_HOURS * 36e5));
-    await this.repo.createSession({ token, userId, userAgent: String(userAgent || '').slice(0, 300), remember, expiresAt: expires.toISOString() });
+    await this.repo.createSession({
+      token,
+      userId,
+      userAgent: String(userAgent || '').slice(0, 300),
+      ipAddress: String(ipAddress || '').slice(0, 100),
+      remember,
+      expiresAt: expires.toISOString(),
+    });
     return { token, expires, remember };
   }
 
@@ -73,9 +90,156 @@ class AuthService {
     }
     if (!user.active) throw forbidden('Your account has been deactivated. Contact an administrator.');
     this.limiter.reset(key);
-    const session = await this.createSession(user.id, { remember: remember !== false, userAgent });
+
+    // If 2FA is active, create an ephemeral challenge (valid 5 minutes)
+    if (user.mfa_enabled) {
+      const mfaToken = randomHex(32);
+      const expires = new Date(Date.now() + 5 * 60e3);
+      await this.repo.createMfaChallenge({
+        tokenHash: sha256(mfaToken),
+        userId: user.id,
+        remember: remember !== false,
+        userAgent: String(userAgent || '').slice(0, 300),
+        ip: String(ip || ''),
+        expiresAt: expires.toISOString(),
+      });
+      return { mfaRequired: true, mfaToken };
+    }
+
+    const session = await this.createSession(user.id, { remember: remember !== false, userAgent, ipAddress: ip });
     await this.repo.deleteExpiredSessions();
     return { user, session };
+  }
+
+  async verifyMfaChallenge({ mfaToken, code, userAgent, ip }) {
+    const token = String(mfaToken || '').trim();
+    const inputCode = String(code || '').trim();
+    if (!token || !inputCode) throw bad('Verification token and code are required.');
+
+    const tokenHash = sha256(token);
+    const challenge = await this.repo.findMfaChallenge(tokenHash);
+    if (!challenge) throw new AppError('Verification session expired or invalid. Please log in again.', 401);
+
+    if (challenge.attempts >= 5) {
+      await this.repo.deleteMfaChallenge(tokenHash);
+      throw new AppError('Too many failed attempts. Please log in again.', 429);
+    }
+
+    if (!challenge.active) throw forbidden('Your account has been deactivated. Contact an administrator.');
+
+    let verified = false;
+    // 1. Check TOTP code
+    if (challenge.mfa_secret) {
+      const decryptedSecret = decryptSecret(challenge.mfa_secret, this.config.sessionSecret);
+      if (decryptedSecret && verifyTOTP(inputCode, decryptedSecret)) {
+        verified = true;
+      }
+    }
+
+    // 2. Check backup recovery code
+    if (!verified) {
+      const cleanBackupCode = inputCode.toUpperCase().replace(/\s+/g, '');
+      const used = await this.repo.useBackupCode(challenge.user_id, sha256(cleanBackupCode));
+      if (used) {
+        verified = true;
+      }
+    }
+
+    if (!verified) {
+      await this.repo.incrementMfaChallengeAttempts(tokenHash);
+      throw new AppError('Invalid authentication code.', 401);
+    }
+
+    await this.repo.deleteMfaChallenge(tokenHash);
+    const user = await this.users.findById(challenge.user_id);
+    const session = await this.createSession(user.id, {
+      remember: challenge.remember,
+      userAgent: userAgent || challenge.user_agent,
+      ipAddress: ip || challenge.ip_address,
+    });
+    return { user, session };
+  }
+
+  /* ---------- MFA management ---------- */
+  async setupMfa(actor) {
+    if (!actor?.user) throw forbidden('Authentication required.');
+    const secret = generateSecret(20);
+    const otpAuthUri = generateOtpAuthUri({
+      secret,
+      accountName: actor.user.email,
+      issuer: 'Masar',
+    });
+    return { secret, otpAuthUri };
+  }
+
+  async enableMfa(actor, { code, secret, password }) {
+    if (!actor?.user) throw forbidden('Authentication required.');
+    const inputCode = String(code || '').trim();
+    const inputSecret = String(secret || '').trim();
+    if (!inputCode || !inputSecret) throw bad('Code and secret are required to enable 2FA.');
+
+    if (!verifyTOTP(inputCode, inputSecret)) {
+      throw bad('Invalid verification code. Check the time on your authenticator device.');
+    }
+
+    const encrypted = encryptSecret(inputSecret, this.config.sessionSecret);
+    await this.repo.enableMfa(actor.id, encrypted);
+
+    const backupCodes = generateBackupCodes(8);
+    const hashedCodes = backupCodes.map((c) => sha256(c));
+    await this.repo.saveBackupCodes(actor.id, hashedCodes);
+
+    return { ok: true, backupCodes };
+  }
+
+  async disableMfa(actor, { code, password }) {
+    if (!actor?.user) throw forbidden('Authentication required.');
+    const user = await this.users.findById(actor.id);
+    if (!user.mfa_enabled) return { ok: true };
+
+    let authorized = false;
+    if (password && user.password_hash && verifyPassword(password, user.password_hash)) {
+      authorized = true;
+    } else if (code && user.mfa_secret) {
+      const decryptedSecret = decryptSecret(user.mfa_secret, this.config.sessionSecret);
+      if (decryptedSecret && verifyTOTP(code, decryptedSecret)) {
+        authorized = true;
+      }
+    }
+
+    if (!authorized) {
+      throw bad('Current password or valid authenticator code is required to disable 2FA.');
+    }
+
+    await this.repo.disableMfa(actor.id);
+    await this.repo.deleteBackupCodes(actor.id);
+    return { ok: true };
+  }
+
+  /* ---------- Sudo / Recent Authentication ---------- */
+  async confirmSudo(actor, { password, code }) {
+    if (!actor?.user) throw forbidden('Authentication required.');
+    const user = await this.users.findById(actor.id);
+
+    let confirmed = false;
+    if (password && user.password_hash && verifyPassword(password, user.password_hash)) {
+      confirmed = true;
+    } else if (code && user.mfa_enabled && user.mfa_secret) {
+      const decryptedSecret = decryptSecret(user.mfa_secret, this.config.sessionSecret);
+      if (decryptedSecret && verifyTOTP(code, decryptedSecret)) {
+        confirmed = true;
+      }
+    }
+
+    if (!confirmed) {
+      throw bad('Invalid password or verification code.');
+    }
+
+    if (actor.sessionToken) {
+      await this.repo.confirmSudo(actor.sessionToken);
+    }
+
+    return { ok: true, sudoUntil: new Date(Date.now() + 15 * 60e3).toISOString() };
   }
 
   async logout(sessionToken) {
@@ -92,7 +256,7 @@ class AuthService {
 
   async revokeSession(actor, id) {
     if (!/^[a-f0-9]{12}$/.test(String(id))) throw bad('Invalid session id.');
-    if (!(await this.repo.deleteSessionByPrefix(actor.id, String(id), actor.sessionToken))) throw notFound('Session not found.');
+    if (!(await this.repo.deleteSessionByPrefix(actor.id, String(id), null))) throw notFound('Session not found.');
   }
 
   /* ---------- personal access tokens ---------- */

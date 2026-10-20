@@ -15,6 +15,7 @@ const TABLES_IN_ORDER = [
   'user_preferences',
   'api_tokens',
   'password_resets',
+  'mfa_backup_codes',
   'organizations',
   'organization_members',
   'workspaces',
