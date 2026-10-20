@@ -1,0 +1,9 @@
+name = "jira-nexus"
+compatibility_date = "2026-10-20"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "jira-nexus-db"
+database_id = "5be4ee29-7d05-4b7f-8882-2fad4df45a8f"
