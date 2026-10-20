@@ -310,6 +310,14 @@ function Root() {
   }, [])
 
   useEffect(() => {
+    if (auth.state === 'out' && typeof window !== 'undefined' && window.location.pathname.startsWith('/jira')) {
+      const returnUrl = window.location.pathname + window.location.search
+      try { sessionStorage.setItem('masar.returnUrl', returnUrl) } catch {}
+      window.history.replaceState(null, '', `/login?returnUrl=${encodeURIComponent(returnUrl)}`)
+    }
+  }, [auth.state])
+
+  useEffect(() => {
     if (resetToken !== null) {
       setAuth({ state: 'out', user: null })
     } else if (session.get()) {
@@ -317,6 +325,11 @@ function Root() {
     }
     const onLogout = (e) => {
       setAuth({ state: 'out', user: null })
+      if (typeof window !== 'undefined' && window.location.pathname.startsWith('/jira')) {
+        const returnUrl = window.location.pathname + window.location.search
+        try { sessionStorage.setItem('masar.returnUrl', returnUrl) } catch {}
+        window.history.replaceState(null, '', `/login?returnUrl=${encodeURIComponent(returnUrl)}`)
+      }
       if (e.detail?.expired) {
         const r = e.detail.reason
         setNotice(r === 'no_credentials'
@@ -332,6 +345,9 @@ function Root() {
     await api.logout().catch(() => {})
     setNotice({ text: 'You have been logged out.' })
     setAuth({ state: 'out', user: null })
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/jira')) {
+      window.history.replaceState(null, '', '/login')
+    }
   }, [])
   const leaveReset = useCallback((text) => {
     window.history.replaceState(null, '', '/')
@@ -350,7 +366,14 @@ function Root() {
         onLeaveReset={leaveReset}
         onLogin={(user) => {
           setNotice(null)
-          if (['/reset-password', '/login', '/signup'].includes(window.location.pathname)) window.history.replaceState(null, '', '/')
+          let target = null
+          try {
+            const params = new URLSearchParams(window.location.search)
+            target = params.get('returnUrl') || sessionStorage.getItem('masar.returnUrl')
+            sessionStorage.removeItem('masar.returnUrl')
+          } catch {}
+          const dest = target && target.startsWith('/jira') ? target : '/'
+          window.history.replaceState(null, '', dest)
           setAuth({ state: 'in', user })
         }}
       />

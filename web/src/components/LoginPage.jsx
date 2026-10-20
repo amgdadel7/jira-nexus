@@ -227,7 +227,7 @@ function LoginForm({ email, setEmail, notice, onLogin, onForgot, onSignup, confi
       <h1>Log in to continue</h1>
       {notice && !error && <div className={`login-notice ${notice.error ? 'error' : ''}`}><Icon name={notice.error ? 'warning' : 'info'} size={16} />{notice.text}</div>}
       {step === 'email' ? (
-        <form onSubmit={toPassword} noValidate>
+        <form onSubmit={toPassword} method="post" noValidate>
           <div className="field">
             <label className="field-title" htmlFor="email">Email</label>
             <input id="email" ref={emailRef} className="text-input auth-input" type="email" autoComplete="username" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" required />
@@ -237,7 +237,7 @@ function LoginForm({ email, setEmail, notice, onLogin, onForgot, onSignup, confi
           <button className="btn primary login-btn auth-btn">Continue</button>
         </form>
       ) : (
-        <form onSubmit={doLogin}>
+        <form onSubmit={doLogin} method="post">
           <div className="auth-email-chip">
             <span title={email}>{email}</span>
             <button type="button" className="icon-btn small" title="Edit email" aria-label="Edit email" onClick={() => { setStep('email'); setPassword(''); setError(null) }}><Icon name="edit" size={14} /></button>
@@ -284,7 +284,7 @@ function SignupForm({ email, setEmail, config, onLogin, onCode, onLoginInstead, 
       {notice && !error && <div className={`login-notice ${notice.error ? 'error' : ''}`}><Icon name={notice.error ? 'warning' : 'info'} size={16} />{notice.text}</div>}
       {closed && <div className="login-notice"><Icon name="lock" size={16} />Sign-up is by invitation only. Ask a site administrator to invite you.</div>}
       {config?.signup === 'domain' && config.allowedDomains?.length > 0 && <div className="login-notice"><Icon name="info" size={16} />Use your {config.allowedDomains.map((d) => `@${d}`).join(' or ')} email address.</div>}
-      <form onSubmit={submit} noValidate>
+      <form onSubmit={submit} method="post" noValidate>
         <div className="field">
           <label className="field-title" htmlFor="signup-email">Email</label>
           <input id="signup-email" className="text-input auth-input" type="email" autoComplete="email" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" required />
@@ -348,7 +348,7 @@ function VerifyForm({ signup, onVerified, onBack, onResent }) {
       </div>
       <h1>Check your inbox</h1>
       <p className="login-sub auth-sub">We’ve sent a 6-digit verification code to <b>{signup.email}</b>. Enter it below to continue.</p>
-      <form onSubmit={(e) => { e.preventDefault(); verify() }}>
+      <form onSubmit={(e) => { e.preventDefault(); verify() }} method="post">
         <CodeInput value={code} onChange={setCode} disabled={busy} />
         <Err>{error}</Err>
         <button className="btn primary login-btn auth-btn" disabled={busy}>{busy ? <Spin label="Verifying…" /> : 'Verify'}</button>
@@ -397,7 +397,7 @@ function FinishForm({ signup, onLogin, onRestart, onLegal }) {
     <>
       <h1>Finish signing up</h1>
       <div className="auth-email-chip verified"><Icon name="check" size={14} /><span>{signup.email}</span></div>
-      <form onSubmit={submit}>
+      <form onSubmit={submit} method="post">
         <div className="field">
           <label className="field-title" htmlFor="full-name">Full name</label>
           <input id="full-name" className="text-input auth-input" autoComplete="name" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter your full name" required />
@@ -480,7 +480,7 @@ function ForgotForm({ email, setEmail, onBack, onOpenReset }) {
     <>
       <h1>Can’t log in?</h1>
       {!sent ? (
-        <form onSubmit={submit}>
+        <form onSubmit={submit} method="post">
           <p className="login-sub auth-sub">We’ll send a recovery link to</p>
           <div className="field">
             <label className="field-title" htmlFor="forgot-email">Email</label>
@@ -544,7 +544,7 @@ function ResetForm({ token, onLogin, onBack, onForgot }) {
     <>
       <h1>Choose a new password</h1>
       <p className="login-sub auth-sub">for <b>{info.email}</b></p>
-      <form onSubmit={submit}>
+      <form onSubmit={submit} method="post">
         <div className="field">
           <label className="field-title" htmlFor="new-password">New password</label>
           <PasswordInput id="new-password" value={pw} onChange={setPw} autoComplete="new-password" placeholder="At least 8 characters" autoFocus />

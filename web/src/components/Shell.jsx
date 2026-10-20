@@ -124,7 +124,7 @@ function QuickSearch() {
   const finish = (fn) => { fn(); setOpen(false); setQ(''); ref.current?.querySelector('input')?.blur() }
   return (
     <>
-      <form ref={ref} className="global-search" onSubmit={(e) => { e.preventDefault(); if (items[hi] && res) finish(items[hi].go); else if (q.trim()) finish(all) }}>
+      <form ref={ref} role="search" action="#" className="global-search" onSubmit={(e) => { e.preventDefault(); if (items[hi] && res) finish(items[hi].go); else if (q.trim()) finish(all) }}>
         <Icon name="search" size={16} />
         <input value={q} onChange={(e) => { setQ(e.target.value); setOpen(true) }} onFocus={() => setOpen(true)} placeholder="Search" aria-label="Search"
           onKeyDown={(e) => {
