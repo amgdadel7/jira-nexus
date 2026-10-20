@@ -1,3 +1,10 @@
+// تهيئة مِرآة لمراقبة الأخطاء في أول سطر قبل أي شيء
+const mirat = require('./mirat-node');
+mirat.init(process.env.MIRAT_DSN || 'https://mirat-monitor.onrender.com/api/events/RgL_RlWnFwK3hv8s71BZu_89R2IOUpIO', {
+  environment: process.env.NODE_ENV || 'development',
+  release: '1.0.0'
+});
+
 const path = require('path');
 const fs = require('fs');
 const express = require('express');
@@ -5,10 +12,6 @@ const seed = require('./seed');
 const { authenticate, requireAuth } = require('./auth');
 const events = require('./events');
 const openapi = require('./openapi');
-const mirat = require('./mirat-node');
-
-const MIRAT_DSN = process.env.MIRAT_DSN || "https://mirat-monitor.onrender.com/api/events/RgL_RlWnFwK3hv8s71BZu_89R2IOUpIO";
-mirat.init(MIRAT_DSN, { environment: process.env.NODE_ENV || "production" });
 
 
 function createApp({ serveClient = true } = {}) {
