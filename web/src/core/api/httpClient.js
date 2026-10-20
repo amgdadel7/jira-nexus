@@ -26,7 +26,12 @@ const PUBLIC_AUTH = ['/api/auth/login', '/api/auth/reset', '/api/auth/forgot', '
 export let lastAuthProblem = null
 
 const API_BASE = (import.meta.env?.VITE_API_URL || '').replace(/\/+$/, '')
-export const resolveUrl = (url) => (API_BASE && url.startsWith('/api') ? `${API_BASE}${url}` : url)
+export const resolveUrl = (url) => {
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    return url
+  }
+  return (API_BASE && url.startsWith('/api') ? `${API_BASE}${url}` : url)
+}
 
 export async function send(method, url, body, { raw, headers } = {}, token, viaQuery) {
   let res

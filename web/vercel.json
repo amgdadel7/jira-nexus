@@ -13,6 +13,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/docs",
+      "destination": "/api/docs/index.html"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://jira-nexus.onrender.com/api/:path*"
     },

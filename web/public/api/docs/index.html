@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Masar REST API Documentation</title>
+  <meta name="description" content="Complete REST API reference for Masar Nexus Workspace." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <style>
+    :root {
+      --bg: #FAFBFC;
+      --surface: #FFFFFF;
+      --text: #172B4D;
+      --subtle: #5E6C84;
+      --border: #DFE1E6;
+      --brand: #0C66E4;
+      --brand-hover: #0055CC;
+      --radius: 6px;
+      --get: #216E4E;
+      --post: #0055CC;
+      --patch: #A54800;
+      --delete: #AE2E24;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+    nav {
+      width: 260px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 24px 16px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    nav .brand {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--brand);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    nav a {
+      display: block;
+      padding: 8px 12px;
+      color: var(--subtle);
+      text-decoration: none;
+      font-size: 14px;
+      border-radius: var(--radius);
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+    nav a:hover {
+      background: #EBECF0;
+      color: var(--text);
+    }
+    main {
+      flex: 1;
+      max-width: 960px;
+      padding: 32px 40px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .lead {
+      color: var(--subtle);
+      font-size: 15px;
+      margin-bottom: 24px;
+    }
+    .info-card {
+      background: #E9F2FF;
+      border: 1px solid #B3D4FF;
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 32px;
+      font-size: 14px;
+      color: #0747A6;
+    }
+    .info-card code {
+      background: rgba(9, 30, 66, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: ui-monospace, monospace;
+    }
+    section {
+      margin-bottom: 40px;
+    }
+    h2 {
+      font-size: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+    .endpoint {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .endpoint summary {
+      padding: 12px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      user-select: none;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      color: #FFF;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      min-width: 58px;
+      text-align: center;
+    }
+    .badge.get { background: var(--get); }
+    .badge.post { background: var(--post); }
+    .badge.patch { background: var(--patch); }
+    .badge.delete { background: var(--delete); }
+    .path {
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 13.5px;
+      color: var(--text);
+    }
+    .summary-text {
+      color: var(--subtle);
+      font-weight: 400;
+      font-size: 13px;
+      margin-left: auto;
+    }
+    .endpoint-body {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+      background: #FAFBFC;
+    }
+    pre {
+      background: #091E420F;
+      padding: 12px;
+      border-radius: 4px;
+      font-family: ui-monospace, monospace;
+      font-size: 12.5px;
+      overflow-x: auto;
+    }
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      nav { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--border); }
+      main { padding: 20px 16px; }
+      .endpoint summary { flex-wrap: wrap; }
+      .summary-text { margin-left: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#0C66E4"/><path d="M8.5 22.5V12.2a1.6 1.6 0 0 1 2.8-1.1L16 16.4l4.7-5.3a1.6 1.6 0 0 1 2.8 1.1v6.3" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Masar API</span>
+    </div>
+    <a href="#auth">Authentication</a>
+    <a href="#projects">Projects</a>
+    <a href="#issues">Work Items (Issues)</a>
+    <a href="#sprints">Sprints</a>
+    <a href="#releases">Releases</a>
+    <a href="#forms">Work Forms</a>
+    <a href="#goals">Goals</a>
+    <a href="#activity">Activity &amp; Notifications</a>
+  </nav>
+
+  <main>
+    <h1>Masar REST API Reference</h1>
+    <p class="lead">All REST endpoints return JSON. Use this API to programmatically manage projects, issues, sprints, and integrations.</p>
+
+    <div class="info-card">
+      <strong>Authentication:</strong> Pass <code>Authorization: Bearer &lt;token&gt;</code> in request headers. Tokens are obtained from <code>POST /api/auth/login</code> or personal API tokens generated in Profile settings.
+    </div>
+
+    <section id="auth">
+      <h2>Authentication</h2>
+      <div class="endpoint">
+        <summary>
+          <span class="badge get">GET</span>
+          <span class="path">/api/auth/config</span>
+          <span class="summary-text">Public authentication config &amp; providers</span>
+        </summary>
+        <div class="endpoint-body">
+          <pre>curl -X GET "https://masar-nexus-workspace.vercel.app/api/auth/config"</pre>
+        </div>
+      </div>
+      <div class="endpoint">
+        <summary>
+          <span class="badge post">POST</span>
+          <span class="path">/api/auth/login</span>
+          <span class="summary-text">Authenticate with email &amp; password</span>
+        </summary>
+        <div class="endpoint-body">
+          <pre>curl -X POST "https://masar-nexus-workspace.vercel.app/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "your-password"}'</pre>
+        </div>
+      </div>
+      <div class="endpoint">
+        <summary>
+          <span class="badge get">GET</span>
+          <span class="path">/api/auth/me</span>
+          <span class="summary-text">Get current authenticated user profile</span>
+        </summary>
+        <div class="endpoint-body">
+          <pre>curl -X GET "https://masar-nexus-workspace.vercel.app/api/auth/me" \
+  -H "Authorization: Bearer $TOKEN"</pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="projects">
+      <h2>Projects</h2>
+      <div class="endpoint">
+        <summary>
+          <span class="badge get">GET</span>
+          <span class="path">/api/projects</span>
+          <span class="summary-text">List all workspace projects</span>
+        </summary>
+        <div class="endpoint-body">
+          <pre>curl -X GET "https://masar-nexus-workspace.vercel.app/api/projects" \
+  -H "Authorization: Bearer $TOKEN"</pre>
+        </div>
+      </div>
+      <div class="endpoint">
+        <summary>
+          <span class="badge get">GET</span>
+          <span class="path">/api/meta?project=KAN</span>
+          <span class="summary-text">Get project metadata, statuses, and fields</span>
+        </summary>
+        <div class="endpoint-body">
+          <pre>curl -X GET "https://masar-nexus-workspace.vercel.app/api/meta?project=KAN" \
+  -H "Authorization: Bearer $TOKEN"</pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="issues">
+      <h2>Work Items (Issues)</h2>
+      <div class="endpoint">
+        <summary>
+          <span class="badge get">GET</span>
+          <span class="path">/api/search?jql=project=KAN</span>
+          <span class="summary-text">Search issues using JQL syntax</span>
+        </summary>
+        <div class="endpoint-body">
+          <pre>curl -X GET "https://masar-nexus-workspace.vercel.app/api/search?jql=project=KAN" \
+  -H "Authorization: Bearer $TOKEN"</pre>
+        </div>
+      </div>
+      <div class="endpoint">
+        <summary>
+          <span class="badge post">POST</span>
+          <span class="path">/api/issues</span>
+          <span class="summary-text">Create a new work item</span>
+        </summary>
+        <div class="endpoint-body">
+          <pre>curl -X POST "https://masar-nexus-workspace.vercel.app/api/issues" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"projectKey": "KAN", "type": "Task", "summary": "New Issue", "priority": "Medium"}'</pre>
+        </div>
+      </div>
+      <div class="endpoint">
+        <summary>
+          <span class="badge get">GET</span>
+          <span class="path">/api/issues/{key}</span>
+          <span class="summary-text">Get issue details, comments, and attachments</span>
+        </summary>
+        <div class="endpoint-body">
+          <pre>curl -X GET "https://masar-nexus-workspace.vercel.app/api/issues/KAN-1" \
+  -H "Authorization: Bearer $TOKEN"</pre>
+        </div>
+      </div>
+      <div class="endpoint">
+        <summary>
+          <span class="badge patch">PATCH</span>
+          <span class="path">/api/comments/{id}</span>
+          <span class="summary-text">Update comment content</span>
+        </summary>
+        <div class="endpoint-body">
+          <pre>curl -X PATCH "https://masar-nexus-workspace.vercel.app/api/comments/12" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"body": "Updated comment text"}'</pre>
+        </div>
+      </div>
+      <div class="endpoint">
+        <summary>
+          <span class="badge delete">DELETE</span>
+          <span class="path">/api/issues/{key}</span>
+          <span class="summary-text">Delete a work item</span>
+        </summary>
+        <div class="endpoint-body">
+          <pre>curl -X DELETE "https://masar-nexus-workspace.vercel.app/api/issues/KAN-1" \
+  -H "Authorization: Bearer $TOKEN"</pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="sprints">
+      <h2>Sprints</h2>
+      <div class="endpoint">
+        <summary>
+          <span class="badge get">GET</span>
+          <span class="path">/api/sprints?project=KAN</span>
+          <span class="summary-text">List sprints for a project</span>
+        </summary>
+        <div class="endpoint-body">
+          <pre>curl -X GET "https://masar-nexus-workspace.vercel.app/api/sprints?project=KAN" \
+  -H "Authorization: Bearer $TOKEN"</pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="releases">
+      <h2>Releases</h2>
+      <div class="endpoint">
+        <summary>
+          <span class="badge get">GET</span>
+          <span class="path">/api/versions?project=KAN</span>
+          <span class="summary-text">List project versions and releases</span>
+        </summary>
+        <div class="endpoint-body">
+          <pre>curl -X GET "https://masar-nexus-workspace.vercel.app/api/versions?project=KAN" \
+  -H "Authorization: Bearer $TOKEN"</pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="forms">
+      <h2>Work Forms</h2>
+      <div class="endpoint">
+        <summary>
+          <span class="badge get">GET</span>
+          <span class="path">/api/forms?project=KAN</span>
+          <span class="summary-text">List work request forms</span>
+        </summary>
+        <div class="endpoint-body">
+          <pre>curl -X GET "https://masar-nexus-workspace.vercel.app/api/forms?project=KAN" \
+  -H "Authorization: Bearer $TOKEN"</pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="goals">
+      <h2>Goals</h2>
+      <div class="endpoint">
+        <summary>
+          <span class="badge get">GET</span>
+          <span class="path">/api/goals?project=KAN</span>
+          <span class="summary-text">List team and project goals</span>
+        </summary>
+        <div class="endpoint-body">
+          <pre>curl -X GET "https://masar-nexus-workspace.vercel.app/api/goals?project=KAN" \
+  -H "Authorization: Bearer $TOKEN"</pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="activity">
+      <h2>Activity &amp; Notifications</h2>
+      <div class="endpoint">
+        <summary>
+          <span class="badge get">GET</span>
+          <span class="path">/api/activity?project=KAN</span>
+          <span class="summary-text">Get project activity feed</span>
+        </summary>
+        <div class="endpoint-body">
+          <pre>curl -X GET "https://masar-nexus-workspace.vercel.app/api/activity?project=KAN" \
+  -H "Authorization: Bearer $TOKEN"</pre>
+        </div>
+      </div>
+      <div class="endpoint">
+        <summary>
+          <span class="badge get">GET</span>
+          <span class="path">/api/notifications</span>
+          <span class="summary-text">Get user notifications</span>
+        </summary>
+        <div class="endpoint-body">
+          <pre>curl -X GET "https://masar-nexus-workspace.vercel.app/api/notifications" \
+  -H "Authorization: Bearer $TOKEN"</pre>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
