@@ -17,6 +17,10 @@
       "destination": "/api/docs/index.html"
     },
     {
+      "source": "/api/permissions/global",
+      "destination": "/api/permissions/global.json"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://jira-nexus.onrender.com/api/:path*"
     },

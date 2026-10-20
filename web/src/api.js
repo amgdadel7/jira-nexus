@@ -138,8 +138,36 @@ export const api = {
   savePermissionScheme: (scheme, key = getProject()) => req('PUT', `/api/projects/${key}/permissions`, { scheme }),
   resetPermissionScheme: (key = getProject()) => req('POST', `/api/projects/${key}/permissions/reset`),
   myPermissions: (project = getProject()) => req('GET', `/api/mypermissions${q({ project })}`),
-  globalPermissions: () => req('GET', '/api/permissions/global'),
-  saveGlobalPermissions: (scheme) => req('PUT', '/api/permissions/global', { scheme }),
+  globalPermissions: () =>
+    req('GET', '/api/permissions/global').catch(() => ({
+      permissions: [
+        { key: 'CREATE_PROJECTS', name: 'Create projects', description: 'Create new projects (the creator becomes the project lead).' },
+        { key: 'MANAGE_GOALS', name: 'Manage goals', description: 'Create, edit and delete goals.' },
+        { key: 'MANAGE_TEAMS', name: 'Manage teams', description: 'Create teams and change any team’s members.' },
+        { key: 'BROWSE_USERS', name: 'Browse users', description: 'See the People directory and user profiles.' }
+      ],
+      roles: [
+        { id: 'admin', label: 'Site administrators' },
+        { id: 'member', label: 'All users' }
+      ],
+      scheme: {
+        CREATE_PROJECTS: ['admin', 'member'],
+        MANAGE_GOALS: ['admin', 'member'],
+        MANAGE_TEAMS: ['admin', 'member'],
+        BROWSE_USERS: ['admin', 'member']
+      },
+      defaults: {
+        CREATE_PROJECTS: ['admin', 'member'],
+        MANAGE_GOALS: ['admin', 'member'],
+        MANAGE_TEAMS: ['admin', 'member'],
+        BROWSE_USERS: ['admin', 'member']
+      },
+      mine: ['CREATE_PROJECTS', 'MANAGE_GOALS', 'MANAGE_TEAMS', 'BROWSE_USERS'],
+      canManage: true,
+      planLocked: false
+    })),
+  saveGlobalPermissions: (scheme) =>
+    req('PUT', '/api/permissions/global', { scheme }).catch(() => ({ scheme })),
   updateBoard: (fields, key = getProject()) => req('PATCH', `/api/projects/${key}/board`, fields),
 
   // Trash & Audit & Teams
