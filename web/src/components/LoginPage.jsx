@@ -66,7 +66,7 @@ export default function LoginPage({ onLogin, notice, resetToken, onLeaveReset, i
 
   const signupClosed = config?.signup === 'invite'
   return (
-    <div className="login-page auth-page">
+    <main className="login-page auth-page">
       <AuthArt />
       <div className="login-card auth-card">
         <div className="auth-logo"><MasarWordmark size={40} fontSize={34} gap={10} /></div>
@@ -110,7 +110,7 @@ export default function LoginPage({ onLogin, notice, resetToken, onLeaveReset, i
         <a className="link" href="/pricing">Pricing</a>
       </div>
       {legal && <LegalModal kind={legal} onClose={() => setLegal(null)} />}
-    </div>
+    </main>
   )
 }
 

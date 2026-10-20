@@ -97,7 +97,7 @@ export default function ProjectsPage() {
   return (
     <div className="page-pad projects-page">
       <div className="page-head">
-        <div><h2>Projects</h2><p className="muted">{projects ? `${projects.length} projects` : 'Loading…'}</p></div>
+        <div><h1>Projects</h1><p className="muted">{projects ? `${projects.length} projects` : 'Loading…'}</p></div>
         {canGlobal('CREATE_PROJECTS') && <button className="btn primary" onClick={() => setCreating(true)}><Icon name="plus" size={16} />Create project</button>}
       </div>
       <div className="toolbar">

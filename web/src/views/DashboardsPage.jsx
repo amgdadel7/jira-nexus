@@ -31,7 +31,7 @@ export default function DashboardsPage() {
   return (
     <div className="page-pad dashboard">
       <div className="page-head">
-        <div><h2>Default dashboard</h2><p className="muted">An overview of {meta.project?.name || 'KAN'}. Gadgets update as work changes.</p></div>
+        <div><h1>Default dashboard</h1><p className="muted">An overview of {meta.project?.name || 'KAN'}. Gadgets update as work changes.</p></div>
         <div className="row-gap">
           {editing && missing.length > 0 && (
             <Dropdown align="end" trigger={({ ref, toggle }) => <button ref={ref} className="btn" onClick={toggle}><Icon name="plus" size={16} />Add gadget</button>}>

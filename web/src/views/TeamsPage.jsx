@@ -52,7 +52,7 @@ export default function TeamsPage() {
   return (
     <div className="page-pad">
       <div className="page-head">
-        <div><h2>Teams</h2><p className="muted">Teams group people who work together. Assign work items to a team and filter with <code>team = "Name"</code> in JQL.</p></div>
+        <div><h1>Teams</h1><p className="muted">Teams group people who work together. Assign work items to a team and filter with <code>team = "Name"</code> in JQL.</p></div>
         {canCreate && <button className="btn primary" onClick={() => setEditing({})}><Icon name="plus" size={16} />Create team</button>}
       </div>
       <div className="toolbar"><label className="list-search"><Icon name="search" size={16} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search teams" aria-label="Search teams" /></label></div>

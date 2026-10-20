@@ -108,7 +108,7 @@ export function PricingPage({ loggedIn }) {
   useEffect(() => { document.title = 'Pricing - Masar'; api.plans().then(setData).catch((e) => setErr(e.message)) }, [])
   const go = (path) => { window.location.href = path }
   return (
-    <div className="pricing-page">
+    <main className="pricing-page">
       <header className="pricing-nav">
         <a href="/" className="pricing-brand"><MasarWordmark size={30} fontSize={24} /></a>
         <div className="grow" />
@@ -132,7 +132,7 @@ export function PricingPage({ loggedIn }) {
           <p className="muted small center">Prices in USD, excluding taxes. Payments in this demo are simulated – no card is ever charged.</p>
         </div>
       )}
-    </div>
+    </main>
   )
 }
 
@@ -198,7 +198,7 @@ function BillingOverview({ b, reload, onPlans, onInvoices }) {
   }
   return (
     <div className="page-pad billing-page">
-      <div className="page-head"><div><h2>Billing overview</h2><p className="muted">Your Masar subscription, usage and payment details.</p></div></div>
+      <div className="page-head"><div><h1>Billing overview</h1><p className="muted">Your Masar subscription, usage and payment details.</p></div></div>
       <div className="billing-grid">
         <section className="billing-card plan-summary" data-plan={s.plan}>
           <div className="billing-card-head"><h3>Current plan</h3><StatusLozenge s={s} /></div>
@@ -334,7 +334,7 @@ function PlansSection({ b, reload }) {
   }
   return (
     <div className="page-pad">
-      <div className="page-head"><div><h2>Plans</h2><p className="muted">You’re on <b>{s.planName}</b>{s.status === 'trialing' ? ` (trial until ${day(s.trialEndsAt)})` : s.plan !== 'free' ? ` · ${s.cycle}` : ''}. Prices are per user; you have {b.usage.users} active users.</p></div>
+      <div className="page-head"><div><h1>Plans</h1><p className="muted">You’re on <b>{s.planName}</b>{s.status === 'trialing' ? ` (trial until ${day(s.trialEndsAt)})` : s.plan !== 'free' ? ` · ${s.cycle}` : ''}. Prices are per user; you have {b.usage.users} active users.</p></div>
         <CycleToggle cycle={cycle} setCycle={setCycle} /></div>
       <PlanCards plans={b.plans} cycle={cycle} current={s} onChoose={choose} />
       <h3 className="section-title">Compare plans</h3>
@@ -404,7 +404,7 @@ function InvoicesSection() {
   useEffect(() => { api.invoices().then(setRows).catch((e) => setErr(e.message)) }, [])
   return (
     <div className="page-pad">
-      <div className="page-head"><div><h2>Invoices</h2><p className="muted">Every payment for your Masar subscription.</p></div></div>
+      <div className="page-head"><div><h1>Invoices</h1><p className="muted">Every payment for your Masar subscription.</p></div></div>
       {err && <div className="login-error"><Icon name="warning" size={16} />{err}</div>}
       {!rows ? <div className="spinner" /> : rows.length === 0 ? <div className="empty-state"><Icon name="book" size={32} /><p>No invoices yet.</p></div> : (
         <table className="data-table invoices-table">
@@ -472,7 +472,7 @@ function SecuritySettings() {
   }
   return (
     <div className="page-pad security-page">
-      <div className="page-head"><div><h2>Security & sign-in</h2><p className="muted">Control who can create an account and which social logins appear on the log in and sign up screens.</p></div></div>
+      <div className="page-head"><div><h1>Security & sign-in</h1><p className="muted">Control who can create an account and which social logins appear on the log in and sign up screens.</p></div></div>
       {err && <div className="login-error"><Icon name="warning" size={16} />{err}</div>}
       <section className="billing-card">
         <div className="billing-card-head"><h3>Who can sign up</h3></div>

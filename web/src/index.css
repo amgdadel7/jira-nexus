@@ -53,6 +53,19 @@ kbd { background: var(--bg-neutral); border-radius: 3px; padding: 0 4px; border:
 .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 body.resizing, body.resizing * { cursor: col-resize !important; user-select: none; }
 
+/* Accessibility: visually hidden for screen readers and search engines */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ===== Buttons ===== */
 .btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--radius); background: var(--bg); border: 1px solid var(--border); font-weight: 500; color: var(--text-subtle); white-space: nowrap; transition: background .1s; }
 .btn:hover:not(:disabled) { background: var(--bg-hover); }
@@ -504,7 +517,7 @@ tbody.group-drop .group-row td { box-shadow: inset 0 0 0 2px var(--brand); }
 .select { appearance: auto; height: 36px; width: auto; min-width: 150px; }
 .page-pad { padding: 20px 32px 40px; overflow-y: auto; flex: 1; min-height: 0; }
 .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
-.page-head h2 { font-size: 24px; line-height: 28px; font-weight: 650; margin: 0 0 4px; }
+.page-head h1, .page-head h2 { font-size: 24px; line-height: 28px; font-weight: 650; margin: 0 0 4px; }
 .page-head p { margin: 0; max-width: 720px; }
 .empty-state.small { padding: 32px 16px; position: static; }
 .table-wrap { margin-top: 12px; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: auto; }
@@ -1121,12 +1134,12 @@ body.dragging-x, body.dragging-x * { cursor: grabbing !important; user-select: n
 .settings-nav-head b { font-size: 14px; }
 .settings-role { margin-top: auto; padding: 12px 8px 0; display: flex; align-items: center; gap: 6px; }
 .settings-content { flex: 1; min-width: 0; padding: 20px 40px 48px; max-width: 1100px; }
-.settings-content h2 { font-size: 24px; line-height: 28px; font-weight: 650; margin: 8px 0 12px; }
+.settings-content h1, .settings-content h2 { font-size: 24px; line-height: 28px; font-weight: 650; margin: 8px 0 12px; }
 .settings-content .breadcrumbs { margin-bottom: 4px; }
 .settings-form { max-width: 640px; }
 .settings-sub { font-size: 16px; font-weight: 650; margin: 24px 0 10px; }
 .settings-sub-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.settings-sub-row h2 { margin-bottom: 4px; }
+.settings-sub-row h1, .settings-sub-row h2 { margin-bottom: 4px; }
 .settings-sub-row p { margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
 .settings-actions { display: flex; gap: 8px; margin-top: 20px; }
 

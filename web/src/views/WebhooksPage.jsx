@@ -34,7 +34,7 @@ export default function WebhooksSection() {
   return (
     <div className="auto-page" data-testid="webhooks">
       <div className="row-between">
-        <div><h2 style={{ margin: 0 }}>Webhooks</h2><p className="muted" style={{ margin: '4px 0 0' }}>Notify other systems when work changes. Payloads follow the Jira webhook format and are signed with <code>X-Hub-Signature: sha256=…</code> when a secret is set.</p></div>
+        <div><h1 style={{ margin: 0 }}>Webhooks</h1><p className="muted" style={{ margin: '4px 0 0' }}>Notify other systems when work changes. Payloads follow the Jira webhook format and are signed with <code>X-Hub-Signature: sha256=…</code> when a secret is set.</p></div>
         <button className="btn primary" onClick={() => setEditing({})}><Icon name="plus" size={16} />Create a webhook</button>
       </div>
       {data.webhooks.length === 0 && <div className="empty-state"><Icon name="webhook" size={36} /><h3>No webhooks</h3><p>Create one to send work item events to a URL.</p></div>}

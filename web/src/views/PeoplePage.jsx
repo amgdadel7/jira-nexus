@@ -17,7 +17,7 @@ export default function PeoplePage() {
       </div>
       {tab === 'users' && (canGlobal('BROWSE_USERS') ? <UsersTab /> : <div className="page-pad"><div className="notice-inline"><Icon name="lock" size={14} />You don’t have the “Browse users” global permission.</div></div>)}
       {tab === 'global' && <GlobalPermissionsTab />}
-      {tab === 'audit' && isAdmin && <div className="page-pad"><div className="page-head"><div><h2>Audit log</h2><p className="muted">Every change to people, roles, permissions, projects and deleted work across the site.</p></div></div><AuditTable /></div>}
+      {tab === 'audit' && isAdmin && <div className="page-pad"><div className="page-head"><div><h1>Audit log</h1><p className="muted">Every change to people, roles, permissions, projects and deleted work across the site.</p></div></div><AuditTable /></div>}
     </div>
   )
 }
@@ -33,7 +33,7 @@ function GlobalPermissionsTab() {
   return (
     <div className="page-pad">
       <div className="page-head">
-        <div><h2>Global permissions</h2><p className="muted">Site-wide abilities that aren’t tied to a project. Project access is managed in each project’s settings.</p></div>
+        <div><h1>Global permissions</h1><p className="muted">Site-wide abilities that aren’t tied to a project. Project access is managed in each project’s settings.</p></div>
         {data.canManage && <button className="btn primary" disabled={!dirty} onClick={save}>Save changes</button>}
       </div>
       {!data.canManage && <div className="notice-inline"><Icon name="lock" size={14} />Only site administrators can change global permissions.</div>}
@@ -95,7 +95,7 @@ function UsersTab() {
   return (
     <div className="page-pad">
       <div className="page-head">
-        <div><h2>People</h2><p className="muted">{isAdmin ? 'Manage who can access this site and what they can do.' : 'Everyone who works in this site.'}</p></div>
+        <div><h1>People</h1><p className="muted">{isAdmin ? 'Manage who can access this site and what they can do.' : 'Everyone who works in this site.'}</p></div>
         {isAdmin && <button className="btn primary" onClick={() => setEditing({})}><Icon name="plus" size={16} />Add people</button>}
       </div>
       <div className="toolbar">

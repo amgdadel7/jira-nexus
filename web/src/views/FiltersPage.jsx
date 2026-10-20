@@ -19,7 +19,7 @@ export default function FiltersPage() {
   return (
     <div className="page-pad">
       <div className="page-head">
-        <div><h2>Filters</h2><p className="muted">Saved searches you can reuse. Starred filters appear in the sidebar.</p></div>
+        <div><h1>Filters</h1><p className="muted">Saved searches you can reuse. Starred filters appear in the sidebar.</p></div>
         <button className="btn primary" onClick={() => setEditing({})}><Icon name="plus" size={16} />Create filter</button>
       </div>
       <div className="toolbar">
