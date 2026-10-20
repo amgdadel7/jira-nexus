@@ -613,8 +613,10 @@ async function seedDemo(c, { force = false, logger = console } = {}) {
   if (hasData && !force) return false;
 
   const kept = await keepLogins(db);
-  await resetSchema(db);
-  await migrate(db, { logger: { info() {}, warn() {} } });
+  if (force) {
+    await resetSchema(db);
+    await migrate(db, { logger: { info() {}, warn() {} } });
+  }
   invalidateCaches(c);
   resetUploads(config);
 

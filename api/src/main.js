@@ -17,6 +17,7 @@ async function bootstrap({ env = process.env, seed = env.SEED_ON_BOOT === 'false
   const container = createContainer({ db, config });
   if (seed) await seed(container);
   await container.trash.purgeExpired?.().catch((err) => console.warn('trash purge failed', err.message));
+  if (typeof global.gc === 'function') global.gc();
   const app = createApp(container, { serveClient });
   if (!listen) return { app, container };
   const server = await new Promise((resolve) => {

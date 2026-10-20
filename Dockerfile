@@ -32,5 +32,6 @@ EXPOSE 8080
 ENV PORT=8080
 ENV HOST=0.0.0.0
 ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=256 --expose-gc"
 
 CMD ["npm", "start"]
