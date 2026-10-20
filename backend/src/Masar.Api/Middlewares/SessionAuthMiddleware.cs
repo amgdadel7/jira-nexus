@@ -7,10 +7,12 @@ namespace Masar.Api.Middlewares;
 public class SessionAuthMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly ILogger<SessionAuthMiddleware> _logger;
 
-    public SessionAuthMiddleware(RequestDelegate next)
+    public SessionAuthMiddleware(RequestDelegate next, ILogger<SessionAuthMiddleware> logger)
     {
         _next = next;
+        _logger = logger;
     }
 
     public async Task InvokeAsync(HttpContext context, IApplicationDbContext dbContext)
@@ -48,32 +50,39 @@ public class SessionAuthMiddleware
 
         if (!string.IsNullOrEmpty(token))
         {
-            var now = DateTimeOffset.UtcNow;
-            var session = await dbContext.Sessions
-                .Include(s => s.User)
-                .FirstOrDefaultAsync(s => s.Token == token && s.ExpiresAt > now);
-
-            if (session?.User != null && session.User.Active)
+            try
             {
-                context.Items["CurrentUser"] = session.User;
-                context.Items["SessionToken"] = token;
+                var now = DateTimeOffset.UtcNow;
+                var session = await dbContext.Sessions
+                    .Include(s => s.User)
+                    .FirstOrDefaultAsync(s => s.Token == token && s.ExpiresAt > now);
 
-                var claims = new List<Claim>
+                if (session?.User != null && session.User.Active)
                 {
-                    new(ClaimTypes.NameIdentifier, session.User.Id),
-                    new(ClaimTypes.Name, session.User.Name),
-                    new(ClaimTypes.Email, session.User.Email),
-                    new(ClaimTypes.Role, session.User.Role)
-                };
+                    context.Items["CurrentUser"] = session.User;
+                    context.Items["SessionToken"] = token;
 
-                var identity = new ClaimsIdentity(claims, "SessionAuth");
-                context.User = new ClaimsPrincipal(identity);
+                    var claims = new List<Claim>
+                    {
+                        new(ClaimTypes.NameIdentifier, session.User.Id),
+                        new(ClaimTypes.Name, session.User.Name),
+                        new(ClaimTypes.Email, session.User.Email),
+                        new(ClaimTypes.Role, session.User.Role)
+                    };
 
-                if (session.LastSeenAt == null || (now - session.LastSeenAt.Value).TotalMinutes > 5)
-                {
-                    session.LastSeenAt = now;
-                    await dbContext.SaveChangesAsync();
+                    var identity = new ClaimsIdentity(claims, "SessionAuth");
+                    context.User = new ClaimsPrincipal(identity);
+
+                    if (session.LastSeenAt == null || (now - session.LastSeenAt.Value).TotalMinutes > 5)
+                    {
+                        session.LastSeenAt = now;
+                        await dbContext.SaveChangesAsync();
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to query session from database: {Message}", ex.Message);
             }
         }
 

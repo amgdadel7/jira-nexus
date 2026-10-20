@@ -3,8 +3,8 @@
 const { Actor } = require('../../../application/Actor');
 const { readCredentials } = require('../authTransport');
 
-/** Resolves req.user / req.actor from any of the supported credential transports. */
-function authenticate({ authService }) {
+/** Resolves req.user / req.actor from any of the supported credential transports with verified tenant scoping. */
+function authenticate({ authService, orgRepo }) {
   return async (req, res, next) => {
     try {
       const creds = readCredentials(req);
@@ -14,7 +14,36 @@ function authenticate({ authService }) {
       req.sessionToken = result.sessionToken || null;
       req.apiTokenId = result.apiTokenId || null;
       req.authFailure = result.failure || null;
-      req.actor = new Actor(req.user, { sessionToken: req.sessionToken, apiTokenId: req.apiTokenId });
+
+      let activeOrg = { id: 'default-org', member_role: req.user?.role === 'admin' ? 'owner' : 'member' };
+      let userOrgs = [];
+      if (orgRepo && req.user) {
+        try {
+          userOrgs = await orgRepo.listByUserId(req.user.id);
+          const requestedOrg = req.headers['x-organization-id'] || req.query.org;
+          if (requestedOrg) {
+            const matched = userOrgs.find((o) => o.id === requestedOrg || o.slug === requestedOrg);
+            if (matched) {
+              activeOrg = matched;
+            } else if (userOrgs.length > 0) {
+              // Never trust unverified client header: fallback to verified primary membership
+              activeOrg = userOrgs[0];
+            }
+          } else if (userOrgs.length > 0) {
+            activeOrg = userOrgs[0];
+          }
+        } catch {
+          // safe fallback during test setup or before migrations
+        }
+      }
+
+      req.actor = new Actor(req.user, {
+        sessionToken: req.sessionToken,
+        apiTokenId: req.apiTokenId,
+        organizationId: activeOrg.id,
+        orgRole: activeOrg.member_role,
+        organizations: userOrgs,
+      });
       next();
     } catch (err) {
       next(err);

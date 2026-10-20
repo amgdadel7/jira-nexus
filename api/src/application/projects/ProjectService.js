@@ -26,7 +26,7 @@ class ProjectService {
   async list(actor, query = '') {
     const q = String(query || '').trim().toLowerCase();
     const out = [];
-    for (const project of await this.projects.listAll()) {
+    for (const project of await this.projects.listAll(actor?.organizationId || null)) {
       if (q && !project.name.toLowerCase().includes(q) && !project.key.toLowerCase().includes(q)) continue;
       if (await this.access.can(actor, project.key, 'BROWSE_PROJECT')) out.push(await this.view(actor, project));
     }
@@ -86,7 +86,7 @@ class ProjectService {
     const fields = await this.fields({ type: 'software', color: COLORS[count % COLORS.length], leadId: actor.id, ...body });
     const workflowId = fields.workflow_id ?? (await this.catalog.defaultWorkflowId());
     const project = await this.db.tx(async () => {
-      const row = await this.projects.insert({ access: 'open', ...fields, key, workflow_id: workflowId });
+      const row = await this.projects.insert({ access: 'open', ...fields, key, workflow_id: workflowId, org_id: actor?.organizationId || 'default-org' });
       // The creator and the lead administer the new project.
       await this.projects.addMemberIfMissing(key, actor.id, 'admin', actor.id);
       if (row.lead_id && row.lead_id !== actor.id) await this.projects.addMemberIfMissing(key, row.lead_id, 'admin', actor.id);

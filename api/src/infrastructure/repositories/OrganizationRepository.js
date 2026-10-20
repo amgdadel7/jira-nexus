@@ -44,7 +44,7 @@ class OrganizationRepository {
 
   async getMember(orgId, userId) {
     return this.db.one(sql`
-      SELECT om.*, u.name, u.email, u.avatar_url
+      SELECT om.*, u.name, u.email, u.avatar
       FROM organization_members om
       JOIN users u ON u.id = om.user_id
       WHERE om.org_id = ${orgId} AND om.user_id = ${userId}
@@ -53,7 +53,7 @@ class OrganizationRepository {
 
   async listMembers(orgId) {
     return this.db.many(sql`
-      SELECT om.*, u.name, u.email, u.avatar_url
+      SELECT om.*, u.name, u.email, u.avatar
       FROM organization_members om
       JOIN users u ON u.id = om.user_id
       WHERE om.org_id = ${orgId}

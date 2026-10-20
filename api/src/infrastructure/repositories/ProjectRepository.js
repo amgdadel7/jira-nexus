@@ -12,11 +12,17 @@ class ProjectRepository {
     return this.db.one(sql`SELECT * FROM projects WHERE key = upper(${String(key ?? '')})`);
   }
 
-  listAll() {
+  listAll(orgId = null) {
+    if (orgId) {
+      return this.db.many(sql`SELECT * FROM projects WHERE org_id = ${orgId} ORDER BY name`);
+    }
     return this.db.many(sql`SELECT * FROM projects ORDER BY name`);
   }
 
-  async listKeys() {
+  async listKeys(orgId = null) {
+    if (orgId) {
+      return (await this.db.many(sql`SELECT key FROM projects WHERE org_id = ${orgId} ORDER BY key`)).map((r) => r.key);
+    }
     return (await this.db.many(sql`SELECT key FROM projects ORDER BY key`)).map((r) => r.key);
   }
 

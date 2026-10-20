@@ -11,7 +11,7 @@ const { requestLogger } = require('./middleware/requestLogger');
 /** Controllers that guard their own routes (public endpoints live here). */
 const PUBLIC_CONTROLLERS = ['auth', 'signup', 'billing'];
 /** Controllers mounted behind requireAuth. */
-const PROTECTED_CONTROLLERS = ['issues', 'workspace', 'planning', 'projects', 'customFields', 'configuration', 'reports', 'productivity', 'admin'];
+const PROTECTED_CONTROLLERS = ['issues', 'workspace', 'planning', 'projects', 'customFields', 'configuration', 'reports', 'productivity', 'admin', 'organizations'];
 
 function loadController(name) {
   const file = path.join(__dirname, 'controllers', `${name}.controller.js`);
@@ -44,13 +44,23 @@ function createApp(container, { serveClient = true } = {}) {
   app.use((req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'same-origin');
+    const origin = req.headers.origin;
+    if (origin) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-JC-Auth, X-Requested-With, Cache-Control, Pragma');
+    }
+    if (req.method === 'OPTIONS') {
+      return res.status(204).end();
+    }
     next();
   });
 
   const api = express.Router();
   api.use(noStore);
   api.use(express.json({ limit: '1mb' }));
-  api.use(authenticate({ authService: services.auth }));
+  api.use(authenticate({ authService: services.auth, orgRepo: container.orgRepo }));
   api.use(broadcaster({ live, access }));
 
   api.get('/health', async (req, res) => {

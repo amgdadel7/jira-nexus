@@ -37,6 +37,7 @@ export const authApi = {
       const timer = setTimeout(() => controller.abort(), 3500)
       const res = await fetch(resolveUrl('/api/auth/config'), { signal: controller.signal, cache: 'no-store' })
       clearTimeout(timer)
+      if (res.ok) return await res.json()
     } catch (_e) {
       /* fallback to default config */
     }

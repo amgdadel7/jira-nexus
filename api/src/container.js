@@ -44,6 +44,7 @@ const repositories = {
   webhookRepo: require('./infrastructure/repositories/WebhookRepository').WebhookRepository,
   reportRepo: require('./infrastructure/repositories/ReportRepository').ReportRepository,
   identityRepo: require('./infrastructure/repositories/IdentityRepository').IdentityRepository,
+  orgRepo: require('./infrastructure/repositories/OrganizationRepository').OrganizationRepository,
 };
 
 /** Services in dependency order: [bag name, class]. */
@@ -87,6 +88,7 @@ const services = [
   ['authProviders', require('./application/auth/AuthProviderService').AuthProviderService],
   ['signup', require('./application/auth/SignupService').SignupService],
   ['maintenance', require('./application/workspace/MaintenanceService').MaintenanceService],
+  ['organizations', require('./application/workspace/OrganizationService').OrganizationService],
 ];
 
 function createContainer({ db, config, logger = console }) {
@@ -121,6 +123,7 @@ function createContainer({ db, config, logger = console }) {
     sprints: c.sprints, versions: c.versions, filters: c.filters, goals: c.goals, forms: c.forms, workspace: c.workspace,
     automation: c.automation, webhooks: c.webhooks, reports: c.reports, worklogs: c.worklogs, votes: c.votes,
     profile: c.profile, importer: c.importer, signup: c.signup, authProviders: c.authProviders, maintenance: c.maintenance,
+    organizations: c.organizations,
   };
   return c;
 }

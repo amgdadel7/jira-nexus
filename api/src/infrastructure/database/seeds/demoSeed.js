@@ -159,11 +159,25 @@ async function seedPeople(db, config, { daysAgo }) {
       id, name, email, color, role, title, password_hash: password, signup_source: 'seed', email_verified: true, created_at: daysAgo(60),
     });
   }
+  await insertPlain(db, 'organizations', {
+    id: 'default-org', name: 'Default Organization', slug: 'default', plan: 'enterprise', owner_id: 'u1',
+  });
+  await insertPlain(db, 'workspaces', {
+    id: 'default-ws', org_id: 'default-org', name: 'Main Workspace', slug: 'main',
+  });
+  for (const [id, , , , role] of USERS) {
+    await insertPlain(db, 'organization_members', {
+      org_id: 'default-org', user_id: id, role: role === 'admin' ? 'owner' : 'member',
+    });
+    await insertPlain(db, 'workspace_members', {
+      workspace_id: 'default-ws', user_id: id, role: role === 'admin' ? 'admin' : 'member',
+    });
+  }
 }
 
 async function seedProjects(db, ref, { daysAgo }) {
   const project = (key, name, type, description, leadId, color, category, access, created) => insert(db, 'projects', {
-    key, name, type, description, lead_id: leadId, color, category, access, workflow_id: ref.workflowId, created_at: daysAgo(created),
+    key, name, type, description, lead_id: leadId, color, category, access, workflow_id: ref.workflowId, org_id: 'default-org', created_at: daysAgo(created),
   });
   await project('KAN', 'AHD Financial', 'software', 'Finance engineering work for AHD Financial: client portal, payments and regulatory reporting.', 'u1', '#FFAB00', 'Engineering', 'limited', 90);
   await project('PAY', 'Payments Platform', 'software', 'Card processing, payouts and the new payment gateway.', 'u5', '#0C66E4', 'Engineering', 'open', 40);

@@ -60,6 +60,11 @@ class AccessControl {
     const project = await this.projects.findByKey(key);
     let result = { project, role: null, set: new Set() };
     if (project) {
+      // Tenant Isolation: Projects belonging to another organization are invisible
+      if (project.org_id && actor.organizationId && project.org_id !== actor.organizationId) {
+        actor.cache.set(cacheKey, result);
+        return result;
+      }
       const role = await this.roleFor(actor.user, project);
       result = { project, role, set: P.permissionSet({ user: actor.user, role, scheme: await this.schemeFor(project) }) };
     }
@@ -83,7 +88,8 @@ class AccessControl {
   async browsableKeys(actor) {
     if (actor.cache.has('browsable')) return actor.cache.get('browsable');
     const keys = [];
-    for (const key of await this.projects.listKeys()) {
+    const allKeys = actor.organizationId ? await this.projects.listKeys(actor.organizationId) : await this.projects.listKeys();
+    for (const key of allKeys) {
       if (await this.can(actor, key, 'BROWSE_PROJECT')) keys.push(key);
     }
     actor.cache.set('browsable', keys);

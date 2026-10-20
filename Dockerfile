@@ -1,28 +1,36 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+# -------------------------------------------------------------
+# Stage 1: Build Frontend (React / Vite)
+# -------------------------------------------------------------
+FROM node:20-slim AS web-builder
+WORKDIR /web
+COPY web/package*.json ./
+RUN npm install
+COPY web/ ./
+RUN npm run build
+
+# -------------------------------------------------------------
+# Stage 2: Production Container (Masar Unified Node.js Backend)
+# -------------------------------------------------------------
+FROM node:20-slim
 WORKDIR /app
 
-# Copy csproj files and restore
-COPY backend/src/Masar.Domain/Masar.Domain.csproj backend/src/Masar.Domain/
-COPY backend/src/Masar.Application/Masar.Application.csproj backend/src/Masar.Application/
-COPY backend/src/Masar.Persistence/Masar.Persistence.csproj backend/src/Masar.Persistence/
-COPY backend/src/Masar.Infrastructure/Masar.Infrastructure.csproj backend/src/Masar.Infrastructure/
-COPY backend/src/Masar.Api/Masar.Api.csproj backend/src/Masar.Api/
+# Install native build tools for sqlite3 / pglite bindings
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
-RUN dotnet restore backend/src/Masar.Api/Masar.Api.csproj
+# Install API dependencies
+COPY api/package*.json ./
+RUN npm install --production=false
 
-# Copy the rest of the source code
-COPY backend/src/ backend/src/
+# Copy API backend source
+COPY api/ ./
 
-# Publish
-RUN dotnet publish backend/src/Masar.Api/Masar.Api.csproj -c Release -o /out
+# Copy compiled frontend distribution to serve from Express
+COPY --from=web-builder /web/dist /web/dist
 
-# Runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
-WORKDIR /app
-COPY --from=build /out ./
-
-ENV ASPNETCORE_HTTP_PORTS=8080
-ENV ASPNETCORE_URLS=http://+:8080
+# Default ports and production environment
 EXPOSE 8080
+ENV PORT=8080
+ENV HOST=0.0.0.0
+ENV NODE_ENV=production
 
-ENTRYPOINT ["dotnet", "Masar.Api.dll"]
+CMD ["npm", "start"]
